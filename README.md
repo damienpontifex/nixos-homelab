@@ -8,7 +8,8 @@ This repository contains a NixOS configuration that tracks git as the source of 
 - `iso.nix` - Configuration for the bootable ISO installer
 - `configuration.nix` - Main system configuration for the installed machine
 - `hardware-configuration.nix` - Generated during installation (not in git)
-- `Makefile` - Helper commands for building the ISO
+- `Makefile` - Helper commands for building, validating, and managing configurations
+- `scripts/` - Helper scripts including git hooks
 
 ## Workflow
 
@@ -134,27 +135,58 @@ sudo nixos-rebuild switch --flake .#nixos-machine
 
 ## Making Changes
 
+### Setup Git Hooks (Recommended)
+
+Install the pre-commit hook to validate configurations before committing:
+
+```bash
+./scripts/install-hooks.sh
+```
+
+This will automatically run `make validate` before each commit to catch errors early.
+
 ### Local Development
 
 1. Edit configuration files in this repository
-2. Test the ISO build: `nix build .#iso`
-3. Or test system build: `nix build .#nixosConfigurations.nixos-machine.config.system.build.toplevel`
-4. Commit and push changes
+2. Validate changes: `make validate`
+3. Format Nix files: `make fmt`
+4. Test the ISO build: `make build-iso`
+5. Or test system build: `make build-system`
+6. Commit and push changes
 
 ### On the Installed Machine
 
 1. Make changes to files in `/etc/nixos`
-2. Test the changes: `sudo nixos-rebuild test --flake .#nixos-machine`
-3. Apply permanently: `sudo nixos-rebuild switch --flake .#nixos-machine`
-4. Commit and push: `git add -A && git commit -m "Update config" && git push`
+2. Validate: `make validate`
+3. Test the changes: `make test` or `sudo nixos-rebuild test --flake .#nixos-machine`
+4. Apply permanently: `make switch` or `sudo nixos-rebuild switch --flake .#nixos-machine`
+5. Commit and push: `git add -A && git commit -m "Update config" && git push`
+
+## Makefile Commands
+
+Run `make help` to see all available commands:
+
+- `make validate` - Validate all Nix configurations (great for pre-commit hooks)
+- `make fmt` - Format all Nix files with nixpkgs-fmt
+- `make build-iso` - Build the ISO installer image
+- `make build-system` - Build system configuration without installing
+- `make update` - Update flake lock file to latest dependencies
+- `make clean` - Remove build artifacts
+- `make write-to-usb` - Interactive USB writer (safer than raw dd)
+- `make show-config` - Show evaluated configuration options
+- `make diff` - Show what would change (NixOS only)
+- `make test` - Test configuration temporarily (NixOS only)
+- `make switch` - Apply configuration permanently (NixOS only)
 
 ## Tips
 
-- Use `nixos-rebuild test` to try changes without making them permanent
-- Use `nixos-rebuild switch` to apply changes and make them the default boot option
+- Use `make validate` before committing to catch configuration errors
+- Use `make test` to try changes without making them permanent
+- Use `make switch` to apply changes and make them the default boot option
 - Use `nixos-rebuild boot` to apply changes for the next boot only
 - Check system generations: `sudo nix-env --list-generations --profile /nix/var/nix/profiles/system`
 - Rollback to previous generation: `sudo nixos-rebuild switch --rollback`
+- Update dependencies periodically: `make update`
 
 ## Customization
 
