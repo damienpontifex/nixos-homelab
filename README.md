@@ -2,40 +2,46 @@
 
 This repository contains a NixOS configuration that tracks git as the source of truth, allowing you to build an ISO installer and then manage system updates through git.
 
+**Works on macOS!** All Makefile commands use Docker, so you can develop and build from macOS without installing Nix.
+
+## Prerequisites
+
+- Docker (for building on macOS/non-NixOS systems)
+- `gh` CLI (optional, for GitHub token authentication)
+- Git
+
 ## Repository Structure
 
 - `flake.nix` - Flake configuration defining both ISO and system builds
 - `iso.nix` - Configuration for the bootable ISO installer
 - `configuration.nix` - Main system configuration for the installed machine
 - `hardware-configuration.nix` - Generated during installation (not in git)
-- `Makefile` - Helper commands for building, validating, and managing configurations
+- `Makefile` - Helper commands for building, validating, and managing configurations (Docker-based, works on macOS)
 - `scripts/` - Helper scripts including git hooks
 
 ## Workflow
 
 ### 1. Build the ISO
 
-Build the ISO image locally:
+Build the ISO image from macOS or any system with Docker:
 
 ```bash
 make build
 ```
 
-Or using nix directly with flakes:
+This uses Docker internally, so no Nix installation required!
 
-```bash
-nix build .#iso
-```
-
-The ISO will be available as `result/iso/*.iso`
+The ISO will be available as `nixos.iso`
 
 ### 2. Write to USB and Boot
 
-Write the ISO to a USB drive:
+Write the ISO to a USB drive using the interactive helper:
 
 ```bash
-sudo dd if=nixos.iso of=/dev/sdX bs=4M status=progress oflag=sync
+make write-to-usb
 ```
+
+This will show available disks and safely write the ISO (works on both macOS and Linux).
 
 Boot from the USB drive.
 
@@ -164,19 +170,24 @@ This will automatically run `make validate` before each commit to catch errors e
 
 ## Makefile Commands
 
+All commands use Docker internally and work on macOS without Nix installed!
+
 Run `make help` to see all available commands:
 
+### Development (works on macOS)
 - `make validate` - Validate all Nix configurations (great for pre-commit hooks)
 - `make fmt` - Format all Nix files with nixpkgs-fmt
-- `make build-iso` - Build the ISO installer image
+- `make build` or `make build-iso` - Build the ISO installer image
 - `make build-system` - Build system configuration without installing
 - `make update` - Update flake lock file to latest dependencies
 - `make clean` - Remove build artifacts
-- `make write-to-usb` - Interactive USB writer (safer than raw dd)
+- `make write-to-usb` - Interactive USB writer (works on macOS and Linux)
 - `make show-config` - Show evaluated configuration options
-- `make diff` - Show what would change (NixOS only)
-- `make test` - Test configuration temporarily (NixOS only)
-- `make switch` - Apply configuration permanently (NixOS only)
+
+### NixOS System Management (requires installed NixOS)
+- `make diff` - Show what would change with current config
+- `make test` - Test configuration temporarily (reverts on reboot)
+- `make switch` - Apply configuration permanently
 
 ## Tips
 
