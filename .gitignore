@@ -1,0 +1,5 @@
+.DS_Store
+result
+result.iso
+*.iso
+hardware-configuration.nix

@@ -24,7 +24,7 @@ build:
 				--format iso \
 				--configuration ./iso.nix \
 				-o result.iso && \
-			cp -L result.iso /build/nixos.iso \
+			cp -r -L result.iso /build/nixos.iso \
 		"
 
 write-to-usb:
