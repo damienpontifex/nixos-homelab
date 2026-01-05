@@ -3,13 +3,18 @@
 MAKEFLAGS += --warn-undefined-variables 
 MAKEFLAGS += --no-builtin-rules
 .PHONY: all help build build-iso build-system validate check fmt format update clean write-to-usb
+.ONESHELL:
 
-# Docker wrapper for Nix commands (macOS compatible)
-NIX_DOCKER = docker run --rm \
-	--env NIX_CONFIG="experimental-features = nix-command flakes"$$'\n'"access-tokens = github.com=$$(gh auth token 2>/dev/null || echo '')" \
-	--volume "$$(pwd):/build" \
-	--workdir /build \
-	nixos/nix
+# Shell function to run Nix commands in Docker (macOS compatible)
+# Usage: nix_docker "nix flake check"
+define nix_docker
+	docker run --rm \
+		--env NIX_CONFIG="experimental-features = nix-command flakes"$$'\n'"access-tokens = github.com=$$(gh auth token 2>/dev/null || echo '')" \
+		--volume "$$(pwd):/build" \
+		--workdir /build \
+		nixos/nix \
+		sh -c $(1)
+endef
 
 ## help: Display available commands and their descriptions
 help:
@@ -22,7 +27,7 @@ help:
 ## validate: Validate all Nix configurations (runs on pre-commit)
 validate:
 	@echo "Validating flake..."
-	@$(NIX_DOCKER) sh -c " \
+	@$(call nix_docker," \
 		nix flake check --all-systems 2>&1 || true && \
 		echo '' && \
 		echo 'Checking flake metadata...' && \
@@ -34,7 +39,7 @@ validate:
 		nix eval .#nixosConfigurations.nixos-machine.config.system.name && \
 		echo '' && \
 		echo '✓ All configurations are valid!' \
-	"
+	")
 
 ## check: Alias for validate
 check: validate
@@ -42,7 +47,7 @@ check: validate
 ## fmt: Format all Nix files with nixpkgs-fmt
 fmt:
 	@echo "Formatting Nix files..."
-	@$(NIX_DOCKER) sh -c "nix-shell -p nixpkgs-fmt --run 'nixpkgs-fmt /build/*.nix'"
+	@$(call nix_docker,"nix-shell -p nixpkgs-fmt --run 'nixpkgs-fmt /build/*.nix'")
 	@echo "✓ Formatting complete!"
 
 ## format: Alias for fmt
@@ -54,10 +59,10 @@ build: build-iso
 ## build-iso: Build the ISO installer image
 build-iso:
 	@echo "Building ISO image..."
-	@$(NIX_DOCKER) sh -c " \
+	@$(call nix_docker," \
 		nix build .#iso -L && \
 		cp -L result/iso/*.iso /build/nixos.iso \
-	"
+	")
 	@echo ""
 	@echo "✓ ISO built successfully!"
 	@ls -lh nixos.iso
@@ -65,7 +70,7 @@ build-iso:
 ## build-system: Build the system configuration (test without installing)
 build-system:
 	@echo "Building system configuration..."
-	@$(NIX_DOCKER) nix build .#nixosConfigurations.nixos-machine.config.system.build.toplevel -L
+	@$(call nix_docker,"nix build .#nixosConfigurations.nixos-machine.config.system.build.toplevel -L")
 	@echo ""
 	@echo "✓ System configuration built successfully!"
 	@ls -lh result
@@ -73,11 +78,11 @@ build-system:
 ## update: Update flake lock file to latest dependencies
 update:
 	@echo "Updating flake inputs..."
-	@$(NIX_DOCKER) sh -c " \
+	@$(call nix_docker," \
 		nix flake update && \
 		echo '' && \
 		echo '✓ Flake updated! Review changes with: git diff flake.lock' \
-	"
+	")
 
 ## clean: Remove build artifacts and result symlinks
 clean:
@@ -109,15 +114,15 @@ write-to-usb:
 
 ## show-config: Show the full evaluated system configuration
 show-config:
-	@$(NIX_DOCKER) sh -c " \
+	@$(call nix_docker," \
 		nix eval .#nixosConfigurations.nixos-machine.config --json | jq -r 'keys | .[]' | head -20 && \
 		echo '...' && \
 		echo '(Showing first 20 keys. Use make show-config-option OPTION=<key> to see specific values)' \
-	"
+	")
 
 ## show-config-option: Show a specific configuration option value
 show-config-option:
-	@$(NIX_DOCKER) nix eval .#nixosConfigurations.nixos-machine.config.$(OPTION) --json | jq .
+	@$(call nix_docker,"nix eval .#nixosConfigurations.nixos-machine.config.$(OPTION) --json | jq .")
 
 ## diff: Show what would change with current config (requires NixOS)
 diff:
