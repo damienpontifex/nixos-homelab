@@ -37,10 +37,10 @@ iso-package:
 	$(DOCKER_NIX) nix build .#iso
 
 validate:
-	$(DOCKER_NIX) nix flake check
+	$(DOCKER_NIX) nix flake check --all-systems
 
 show:
-	$(DOCKER_NIX) nix flake show
+	$(DOCKER_NIX) nix flake show --all-systems
 
 update:
 	$(DOCKER_NIX) nix flake update
