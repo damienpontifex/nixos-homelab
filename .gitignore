@@ -6,3 +6,6 @@ hardware-configuration.nix
 
 # Build artifacts
 .pre-commit-config.yaml
+
+# direnv
+.direnv/
