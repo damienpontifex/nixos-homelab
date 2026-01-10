@@ -6,8 +6,9 @@ MAKEFLAGS += --no-builtin-rules
 .ONESHELL:
 
 DOCKER_NIX := docker run --rm \
+	--platform linux/amd64 \
 	-it \
-	--env NIX_CONFIG="experimental-features = nix-command flakes"$$'\n'"access-tokens = github.com=$$(gh auth token 2>/dev/null || echo '')" \
+	--env NIX_CONFIG="experimental-features = nix-command flakes"$$'\n'"access-tokens = github.com=$$(gh auth token 2>/dev/null || echo '')"$$'\n'"filter-syscalls = false" \
 	--volume "$$(pwd):/build" \
 	--workdir /build \
 	nixos/nix \
@@ -33,8 +34,8 @@ interactive:
 iso:
 	$(DOCKER_NIX) sh -c 'nix run github:nix-community/nixos-generators -- --format iso --flake .#homeserver'
 
-iso-package:
-	$(DOCKER_NIX) nix build .#iso
+homeserver-iso:
+	$(DOCKER_NIX) sh -c 'nix build .#homeserver && mv result/iso/nixos-*.iso .'
 
 validate:
 	$(DOCKER_NIX) nix flake check --all-systems

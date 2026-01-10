@@ -7,7 +7,7 @@
   system.stateVersion = "24.11";
 
   environment.systemPackages = with pkgs; [
-    vim
+    neovim
     git
     curl
     htop

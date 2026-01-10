@@ -2,10 +2,7 @@
 result
 result.iso
 *.iso
-hardware-configuration.nix
-
-# Build artifacts
-.pre-commit-config.yaml
+*.img
 
 # direnv
 .direnv/
