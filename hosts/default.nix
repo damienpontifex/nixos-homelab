@@ -1,12 +1,16 @@
 # Centralized host configurations
-{ nixpkgs, nixos-hardware, ... }:
+{ nixpkgs, nixos-hardware, disko, self ? null, ... }:
 let
   lib = nixpkgs.lib;
 in
 {
   homeserver = lib.nixosSystem {
     system = "x86_64-linux";
-    modules = [ ./homeserver ];
+    specialArgs = { inherit self; };
+    modules = [ 
+      ./homeserver
+      disko.nixosModules.disko
+    ];
   };
 
   rpi-node-1 = lib.nixosSystem {
