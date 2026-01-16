@@ -52,5 +52,19 @@ rebuild:
 build-vm:
 	$(DOCKER_NIX) nixos-rebuild build-vm --flake .#homeserver
 
-anywhere:
-	$(DOCKER_NIX) nix run github:numtide/nixos-anywhere -- --flake .#homeserver root@yourhost
+## install-anywhere: Install NixOS to remote x86_64 machine
+install-anywhere:
+	# Boot from ISO
+	# Connect to WiFi
+	# Set root user password with `passwd`
+	$(call DOCKER_NIX, sh -c "nix run github:numtide/nixos-anywhere -- --flake .#homeserver nixos@$$HOST")
+
+## rpi-image: Build Raspberry Pi SD card image for rpi-node-1
+rpi-image:
+	$(call DOCKER_NIX, sh -c 'nix build .#packages.aarch64-linux.rpi-node-1 && ls -lh result/sd-image/*.img')
+	@echo ""
+	@echo "SD card image built! To flash to SD card:"
+	@echo "  1. Insert SD card and find device (diskutil list on macOS)"
+	@echo "  2. Unmount: diskutil unmountDisk /dev/diskN"
+	@echo "  3. Flash: sudo dd if=result/sd-image/*.img of=/dev/rdiskN bs=4M status=progress"
+	@echo "  4. Eject: diskutil eject /dev/diskN"

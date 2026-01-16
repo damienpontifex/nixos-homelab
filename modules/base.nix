@@ -4,7 +4,6 @@
   # Enable flakes on deployed systems (for local nixos-rebuild operations)
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
 
-  system.stateVersion = "24.11";
 
   environment.systemPackages = with pkgs; [
     curl
@@ -12,4 +11,8 @@
     htop
     neovim
   ];
+
+  nixpkgs.config.allowUnfree = true;
+
+  system.stateVersion = "25.11";
 }
