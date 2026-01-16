@@ -52,7 +52,7 @@ rebuild:
 build-vm:
 	$(DOCKER_NIX) nixos-rebuild build-vm --flake .#homeserver
 
-## install-anywhere: Install NixOS to remote x86_64 machine
+## validate-anywher## install-anywhere: Install NixOS to remote x86_64 machine
 install-anywhere:
 	# Boot from ISO
 	# Connect to WiFi

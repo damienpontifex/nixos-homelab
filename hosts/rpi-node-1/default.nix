@@ -7,6 +7,13 @@
 
   networking.hostName = "rpi-node-1";
 
+  # Enable automatic updates from git repository
+  services.nixos-git-update = {
+    enable = true;
+    repository = "https://github.com/damienpontifex/nixos-homelab.git";
+    branch = "main";
+  };
+
   services.k3s = {
     role = "agent";
     serverAddr = "https://homeserver.local:6443";

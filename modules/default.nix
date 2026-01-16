@@ -6,5 +6,6 @@
     ./users.nix
     ./networking.nix
     ./ssh.nix
+    ./git-auto-update.nix
   ];
 }
