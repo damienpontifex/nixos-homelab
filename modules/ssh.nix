@@ -8,4 +8,6 @@
       PasswordAuthentication = false;
     };
   };
+
+  networking.firewall.allowedTCPPorts = [ 22 ];
 }

@@ -1,22 +1,29 @@
-{ config, ... }:
+{ config, lib, ... }:
 
 {
-  networking.useDHCP = true;
-
-  networking.wireless = {
-    enable = true;
-    networks = {
-      PontiFi = {
-        psk = "to-be-replaced";
-      };
+  options = {
+    networking.enableWifi = lib.mkOption {
+      type = lib.types.bool;
+      default = true;
+      description = "Enable wireless networking configuration";
     };
   };
 
-  networking.firewall = {
-    enable = true;
-    allowedTCPPorts = [
-      22 # SSH
-      6443 # k3s API
-    ];
+  config = {
+    networking.useDHCP = true;
+
+    sops.secrets.pontiFiWiFiPassword = lib.mkIf config.networking.enableWifi {};
+
+    networking.wireless = lib.mkIf config.networking.enableWifi {
+      enable = true;
+      networks = {
+        PontiFi = {
+          pskRaw = "ext:pontiFiWiFiPassword";
+        };
+      };
+      secretsFile = config.sops.secrets.pontiFiWiFiPassword.path;
+    };
+
+    networking.firewall.enable = true;
   };
 }

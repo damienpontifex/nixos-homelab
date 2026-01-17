@@ -15,6 +15,7 @@ _ensure_container:
             --name {{container_name}} \
             --env NIX_CONFIG="experimental-features = nix-command flakes"$'\n'"access-tokens = github.com=$(gh auth token 2>/dev/null || echo '')"$'\n'"filter-syscalls = false" \
             --volume "$(pwd):/build" \
+            --volume "$HOME/.config/sops:/var/lib/sops-nix:ro" \
             --workdir /build \
             nixos/nix sleep infinity
     fi
@@ -73,11 +74,32 @@ build-vm: _ensure_container
     docker exec {{container_name}} nixos-rebuild build-vm --flake .#homeserver
 
 # Install NixOS to remote x86_64 machine
-install-anywhere: _ensure_container
+[group('install')]
+install-anywhere HOST_IP: _ensure_container
     # Boot from ISO
     # Connect to WiFi
     # Set root user password with `passwd`
-    docker exec {{container_name}} sh -c "nix run github:numtide/nixos-anywhere -- --flake .#homeserver nixos@$HOST"
+    # Needs interactive prompt when asking for password and others `--interactive --tty`
+    docker exec -it {{container_name}} nix run github:numtide/nixos-anywhere -- --flake .#homeserver nixos@{{HOST_IP}}
+
+[group('install')]
+install-vm HOST_IP: _ensure_container
+    #!/usr/bin/env bash
+    docker exec -it {{container_name}} sh -c '
+      tempdir=$(mktemp -d)
+      cleanup() {
+        rm -rf "$tempdir"
+      }
+      trap cleanup EXIT
+
+      mkdir -p "$tempdir/var/lib/sops-nix/age"
+      echo "$(tail -1 /var/lib/sops-nix/age/keys.txt)" > "$tempdir/var/lib/sops-nix/age/keys.txt"
+
+      nix run github:numtide/nixos-anywhere -- \
+        --extra-files "$tempdir" \
+        --flake .#vm nixos@{{HOST_IP}} \
+        --generate-hardware-config nixos-generate-config ./hosts/vm/hardware-configuration.nix
+    '
 
 # Build Raspberry Pi SD card image for rpi-node-1
 rpi-image: _ensure_container

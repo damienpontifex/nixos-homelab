@@ -6,14 +6,14 @@
   sops-nix,
   self ? null,
   ...
-}:
+}@inputs:
 let
   lib = nixpkgs.lib;
 in
 {
   homeserver = lib.nixosSystem {
     system = "x86_64-linux";
-    specialArgs = { inherit self; };
+    specialArgs = { inherit self inputs; };
     modules = [
       ./homeserver
       disko.nixosModules.disko
@@ -26,6 +26,17 @@ in
     modules = [
       ./rpi-node-1
       nixos-hardware.nixosModules.raspberry-pi-4
+      sops-nix.nixosModules.sops
+    ];
+  };
+
+  vm = lib.nixosSystem {
+    system = "aarch64-linux";
+    specialArgs = { inherit self sops-nix inputs; };
+    modules = [
+      ./vm
+      disko.nixosModules.disko
+      sops-nix.nixosModules.sops
     ];
   };
 }

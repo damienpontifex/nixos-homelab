@@ -26,8 +26,15 @@
 
     sops-nix = {
       url = "github:Mic92/sops-nix";
-      inputs.nkpkgs.follows = "nixpkgs";
+      inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    # Private secrets repo. See ./docs/secretsmgmt.md
+    # Authenticate via ssh and use shallow clone
+    # mysecrets = {
+    #   url = "https://github.com/damienpontifex/nix-secrets.git?ref=main&shallow=1";
+    #   flake = false;
+    # };
   };
 
   outputs =
@@ -39,7 +46,7 @@
       disko,
       sops-nix,
       ...
-    }:
+    }@inputs:
     {
       # Import all host configurations from hosts/default.nix
       nixosConfigurations = import ./hosts {
@@ -49,6 +56,7 @@
           nixos-hardware
           disko
           sops-nix
+          inputs
           ;
       };
 
