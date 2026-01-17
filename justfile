@@ -4,30 +4,27 @@ container_name := "nixos-homelab-builder"
 # Check if container exists and is running, start it if stopped, create if it doesn't exist
 _ensure_container:
     #!/usr/bin/env bash
-    if docker ps -a --format '{{{{.Names}}' | grep -q "^{{container_name}}$"; then
-        if ! docker ps --format '{{{{.Names}}' | grep -q "^{{container_name}}$"; then
-            echo "Starting existing container {{container_name}}..."
-            docker start {{container_name}} > /dev/null
-        fi
+    if docker ps --format '{{{{.Names}}' | grep -q "^{{container_name}}$"; then
+        # Container is running
+        true
+    elif docker ps -a --format '{{{{.Names}}' | grep -q "^{{container_name}}$"; then
+        # Container exists but is stopped
+        echo "Starting existing container {{container_name}}..."
+        GITHUB_TOKEN=$(gh auth token 2>/dev/null || echo '') docker compose up -d
     else
+        # Container doesn't exist
         echo "Creating new container {{container_name}}..."
-        docker run -d --platform linux/amd64 \
-            --name {{container_name}} \
-            --env NIX_CONFIG="experimental-features = nix-command flakes"$'\n'"access-tokens = github.com=$(gh auth token 2>/dev/null || echo '')"$'\n'"filter-syscalls = false" \
-            --volume "$(pwd):/build" \
-            --volume "$HOME/.config/sops:/var/lib/sops-nix:ro" \
-            --workdir /build \
-            nixos/nix sleep infinity
+        GITHUB_TOKEN=$(gh auth token 2>/dev/null || echo '') docker compose up -d
     fi
 
 # Display available commands and their descriptions
 help:
     @just --list
 
-# Remove the persistent Nix container (clears cache)
+# Remove the persistent Nix container (preserves volumes for nix store cache)
 clean-container:
-    docker rm -f {{container_name}} || true
-    @echo "Container {{container_name}} removed. Next command will create a fresh container."
+    docker compose down
+    @echo "Container {{container_name}} removed. Volumes preserved for caching. Next command will create a fresh container."
 
 fmt: _ensure_container
     docker exec {{container_name}} nix fmt .

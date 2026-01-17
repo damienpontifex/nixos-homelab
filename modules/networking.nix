@@ -12,7 +12,7 @@
   config = {
     networking.useDHCP = true;
 
-    sops.secrets.pontiFiWiFiPassword = lib.mkIf config.networking.enableWifi {};
+    sops.secrets.pontiFiWiFiPassword = lib.mkIf config.networking.enableWifi { };
 
     networking.wireless = lib.mkIf config.networking.enableWifi {
       enable = true;
