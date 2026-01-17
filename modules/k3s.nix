@@ -1,4 +1,9 @@
-{ config, pkgs, lib, ... }:
+{
+  config,
+  pkgs,
+  lib,
+  ...
+}:
 {
   services.k3s = {
     enable = true;
@@ -17,11 +22,11 @@
 
   # Automatically open firewall ports for k3s
   networking.firewall.allowedTCPPorts = lib.mkIf config.services.k3s.enable [
-    6443  # k3s API server
+    6443 # k3s API server
   ];
 
   networking.firewall.allowedUDPPorts = lib.mkIf config.services.k3s.enable [
-    8472  # Flannel VXLAN
+    8472 # Flannel VXLAN
   ];
 
   environment.systemPackages = with pkgs; [

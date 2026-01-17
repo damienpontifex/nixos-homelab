@@ -1,4 +1,9 @@
-{ config, pkgs, lib, ... }:
+{
+  config,
+  pkgs,
+  lib,
+  ...
+}:
 
 let
   cfg = config.services.nixos-git-update;
@@ -58,15 +63,16 @@ in
     system.autoUpgrade = {
       enable = true;
       # Use the hostname to select the correct flake output
-      flake = "${cfg.path}#nixosConfigurations.${config.networking.hostName}";
+      flake = "${cfg.path}#${config.networking.hostName}";
       flags = [
-        "--update-input" "nixpkgs"  # Update nixpkgs input
-        "--commit-lock-file"         # Commit the updated lock file
-        "-L"                         # Print build logs
+        "--update-input"
+        "nixpkgs" # Update nixpkgs input
+        "--commit-lock-file" # Commit the updated lock file
+        "-L" # Print build logs
       ];
       dates = "02:00";
       randomizedDelaySec = "45min";
-      
+
       # Apply updates on next boot for safety
       operation = "boot";
     };

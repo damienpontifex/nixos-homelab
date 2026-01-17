@@ -7,6 +7,9 @@ docker_nix := "docker run --rm --platform linux/amd64 -it \
 help:
     @just --list
 
+fmt:
+    {{docker_nix}} nix fmt .
+
 # Run interactive bash shell in Nix Docker container
 interactive:
     {{docker_nix}} bash

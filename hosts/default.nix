@@ -1,5 +1,12 @@
 # Centralized host configurations
-{ nixpkgs, nixos-hardware, disko, self ? null, ... }:
+{
+  nixpkgs,
+  nixos-hardware,
+  disko,
+  sops-nix,
+  self ? null,
+  ...
+}:
 let
   lib = nixpkgs.lib;
 in
@@ -7,9 +14,10 @@ in
   homeserver = lib.nixosSystem {
     system = "x86_64-linux";
     specialArgs = { inherit self; };
-    modules = [ 
+    modules = [
       ./homeserver
       disko.nixosModules.disko
+      sops-nix.nixosModules.sops
     ];
   };
 
