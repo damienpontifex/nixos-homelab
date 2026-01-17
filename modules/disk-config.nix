@@ -1,0 +1,51 @@
+{ lib, config, ... }:
+{
+  options.diskConfig = {
+    device = lib.mkOption {
+      type = lib.types.str;
+      description = "The device path for the main disk (e.g., /dev/sda or /dev/vda)";
+    };
+  };
+
+  config = {
+    disko.devices = {
+      disk = {
+        main = {
+          device = config.diskConfig.device;
+          type = "disk";
+          content = {
+            type = "gpt";
+            partitions = {
+              ESP = {
+                size = "512M";
+                type = "EF00";
+                content = {
+                  type = "filesystem";
+                  format = "vfat";
+                  mountpoint = "/boot";
+                  mountOptions = [ "umask=0077" ]; # So only the root user can read/write
+                };
+              };
+              swap = {
+                size = "8G"; # Default matching RAM
+                content = {
+                  type = "swap";
+                  discardPolicy = "both";
+                  resumeDevice = true; # Allows for hibernation support
+                };
+              };
+              root = {
+                size = "100%";
+                content = {
+                  type = "filesystem";
+                  format = "ext4";
+                  mountpoint = "/";
+                };
+              };
+            };
+          };
+        };
+      };
+    };
+  };
+}

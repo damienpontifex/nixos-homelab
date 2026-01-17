@@ -1,10 +1,13 @@
 {
   imports = [
     ./hardware-configuration.nix
-    ./disk-config.nix
     ../../modules # Imports common modules from modules/default.nix
+    ../../modules/disk-config.nix
     # ../../modules/k3s.nix  # K3s is optional, imported per-host
   ];
+
+  # Disk configuration
+  diskConfig.device = "/dev/vda";
 
   networking.hostName = "vm";
   networking.enableWifi = false;

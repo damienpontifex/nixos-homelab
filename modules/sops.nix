@@ -6,9 +6,9 @@
   ...
 }:
 {
-  # imports = [
-  #   sops-nix.nixosModules.sops
-  # ];
+  imports = [
+    sops-nix.nixosModules.sops
+  ];
 
   sops.defaultSopsFile = ../secrets.yaml;
   sops.validateSopsFiles = false;

@@ -1,42 +1,6 @@
 {
   description = "Homelab NixOS + k3s";
 
-  # Enable flakes for anyone building this flake (without system-wide flakes enabled)
-  nixConfig = {
-    experimental-features = [
-      "nix-command"
-      "flakes"
-    ];
-  };
-
-  inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-
-    nixos-generators = {
-      url = "github:nix-community/nixos-generators";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
-    nixos-hardware.url = "github:NixOS/nixos-hardware/master";
-
-    disko = {
-      url = "github:nix-community/disko";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
-    sops-nix = {
-      url = "github:Mic92/sops-nix";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
-    # Private secrets repo. See ./docs/secretsmgmt.md
-    # Authenticate via ssh and use shallow clone
-    # mysecrets = {
-    #   url = "https://github.com/damienpontifex/nix-secrets.git?ref=main&shallow=1";
-    #   flake = false;
-    # };
-  };
-
   outputs =
     {
       self,
@@ -81,4 +45,40 @@
       #   }) (hostsFor "aarch64-linux");
       # };
     };
+
+  # Enable flakes for anyone building this flake (without system-wide flakes enabled)
+  nixConfig = {
+    experimental-features = [
+      "nix-command"
+      "flakes"
+    ];
+  };
+
+  inputs = {
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+
+    nixos-generators = {
+      url = "github:nix-community/nixos-generators";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    nixos-hardware.url = "github:NixOS/nixos-hardware/master";
+
+    disko = {
+      url = "github:nix-community/disko";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    sops-nix = {
+      url = "github:Mic92/sops-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    # Private secrets repo. See ./docs/secretsmgmt.md
+    # Authenticate via ssh and use shallow clone
+    # mysecrets = {
+    #   url = "https://github.com/damienpontifex/nix-secrets.git?ref=main&shallow=1";
+    #   flake = false;
+    # };
+  };
 }
