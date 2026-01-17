@@ -29,50 +29,59 @@ clean-container:
     @echo "Container {{container_name}} removed. Next command will create a fresh container."
 
 fmt: _ensure_container
-    @docker exec -it {{container_name}} nix fmt .
+    docker exec {{container_name}} nix fmt .
 
 # Run interactive bash shell in Nix Docker container
 interactive: _ensure_container
-    @docker exec -it {{container_name}} bash
+    docker exec -it {{container_name}} bash
 
 # Build ISO image using nix-community/nixos-generators
 iso: _ensure_container
-    docker exec -it {{container_name}} sh -c 'nix run github:nix-community/nixos-generators -- --format iso --flake .#homeserver'
+    docker exec {{container_name}} sh -c 'nix run github:nix-community/nixos-generators -- --format iso --flake .#homeserver'
 
 # Build homeserver ISO and move to current directory
 homeserver-iso: _ensure_container
-    docker exec -it {{container_name}} sh -c 'nix build .#homeserver && mv result/iso/nixos-*.iso .'
+    docker exec {{container_name}} sh -c 'nix build .#homeserver && mv result/iso/nixos-*.iso .'
 
-# Validate flake configuration for all systems
+# Validate flake configuration for all systems (evaluation only)
 validate: _ensure_container
-    docker exec -it {{container_name}} nix flake check --all-systems
+    docker exec {{container_name}} nix flake check --all-systems
+
+# Validate and test-build all systems (slower but more thorough)
+validate-build: _ensure_container
+    docker exec {{container_name}} nix flake check --all-systems
+    @echo "Building homeserver configuration (dry-run)..."
+    docker exec {{container_name}} nix build .#nixosConfigurations.homeserver.config.system.build.toplevel --dry-run
+    @echo "Building rpi-node-1 configuration (dry-run)..."
+    docker exec {{container_name}} nix build .#nixosConfigurations.rpi-node-1.config.system.build.toplevel --dry-run
+    @echo "All validations passed!"
 
 # Show flake outputs for all systems
 show: _ensure_container
-    docker exec -it {{container_name}} nix flake show --all-systems
+    docker exec {{container_name}} nix flake show --all-systems
 
 # Update flake inputs
 update: _ensure_container
-    docker exec -it {{container_name}} nix flake update
+    docker exec {{container_name}} nix flake update
 
 # Rebuild NixOS system for homeserver
 rebuild: _ensure_container
-    docker exec -it {{container_name}} nixos-rebuild switch --flake .#homeserver
+    docker exec {{container_name}} nixos-rebuild switch --flake .#homeserver
 
 # Build VM for homeserver
 build-vm: _ensure_container
-    docker exec -it {{container_name}} nixos-rebuild build-vm --flake .#homeserver
+    docker exec {{container_name}} nixos-rebuild build-vm --flake .#homeserver
 
 # Install NixOS to remote x86_64 machine
 install-anywhere: _ensure_container
     # Boot from ISO
     # Connect to WiFi
     # Set root user password with `passwd`
-    docker exec -it {{container_name}} sh -c "nix run github:numtide/nixos-anywhere -- --flake .#homeserver nixos@$HOST"
+    docker exec {{container_name}} sh -c "nix run github:numtide/nixos-anywhere -- --flake .#homeserver nixos@$HOST"
 
 # Build Raspberry Pi SD card image for rpi-node-1
 rpi-image: _ensure_container
-    docker exec -it {{container_name}} sh -c 'nix build .#packages.aarch64-linux.rpi-node-1 && ls -lh result/sd-image/*.img'
+    docker exec {{container_name}} sh -c 'nix build .#packages.aarch64-linux.rpi-node-1 && ls -lh result/sd-image/*.img'
     @echo ""
     @echo "SD card image built! To flash to SD card:"
     @echo "  1. Insert SD card and find device (diskutil list on macOS)"
