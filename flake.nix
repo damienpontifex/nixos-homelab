@@ -30,6 +30,16 @@
         aarch64-darwin = nixpkgs.legacyPackages.aarch64-darwin.nixfmt-tree;
       };
 
+      # Development shell with linting and formatting tools
+      devShells.x86_64-linux.default = nixpkgs.legacyPackages.x86_64-linux.mkShell {
+        packages = with nixpkgs.legacyPackages.x86_64-linux; [
+          deadnix
+          statix
+          nixfmt-tree
+          nil
+        ];
+      };
+
       # # Generate ISOs for x86_64 hosts and SD card images for aarch64 hosts (Raspberry Pi)
       # packages = {
       #   x86_64-linux = lib.mapAttrs (_: cfg: nixos-generators.nixosGenerate {

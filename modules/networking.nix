@@ -10,20 +10,21 @@
   };
 
   config = {
-    networking.useDHCP = true;
 
     sops.secrets.pontiFiWiFiPassword = lib.mkIf config.networking.enableWifi { };
 
-    networking.wireless = lib.mkIf config.networking.enableWifi {
-      enable = true;
-      networks = {
-        PontiFi = {
-          pskRaw = "ext:pontiFiWiFiPassword";
+    networking = {
+      useDHCP = true;
+      firewall.enable = true;
+      wireless = lib.mkIf config.networking.enableWifi {
+        enable = true;
+        networks = {
+          PontiFi = {
+            pskRaw = "ext:pontiFiWiFiPassword";
+          };
         };
+        secretsFile = config.sops.secrets.pontiFiWiFiPassword.path;
       };
-      secretsFile = config.sops.secrets.pontiFiWiFiPassword.path;
     };
-
-    networking.firewall.enable = true;
   };
 }

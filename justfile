@@ -14,6 +14,28 @@ clean:
 fmt: _ensure_container
     docker exec {{container_name}} nix fmt .
 
+lint-unused: _ensure_container
+    @echo "Checking for unused code with deadnix..."
+    docker exec {{container_name}} nix run nixpkgs#deadnix -- --exclude hardware-configuration.nix .
+
+lint-statix: _ensure_container
+    @echo "Checking for lint issues with statix..."
+    docker exec {{container_name}} nix run nixpkgs#statix -- check --ignore hardware-configuration.nix .
+
+# Check for lint issues (unused arguments, dead code, etc.)
+[group('dev')]
+lint: lint-unused lint-statix
+
+# Fix lint issues automatically
+[group('dev')]
+lint-fix: _ensure_container
+    @echo "Checking for unused code with deadnix..."
+    docker exec {{container_name}} nix run nixpkgs#deadnix -- --edit .
+    @echo "Fixing lint issues with statix..."
+    docker exec {{container_name}} nix run nixpkgs#statix -- fix .
+    @echo "Formatting code..."
+    docker exec {{container_name}} nix fmt .
+
 # Validate flake configuration for all systems (evaluation only)
 [group('dev')]
 validate: _ensure_container

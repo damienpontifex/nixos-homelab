@@ -1,5 +1,8 @@
 { lib, config, ... }:
 {
+  # Note: disko.nixosModules.disko should be imported at the host level
+  # This module only configures disko, it doesn't import it
+
   options.diskConfig = {
     device = lib.mkOption {
       type = lib.types.str;

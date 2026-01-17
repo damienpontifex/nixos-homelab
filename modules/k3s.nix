@@ -5,11 +5,16 @@
   ...
 }:
 {
+  # Configure sops secret for k3s token
+  sops.secrets.k3s-token = lib.mkIf config.services.k3s.enable {
+    sopsFile = ../secrets.yaml;
+  };
+
   services.k3s = {
     enable = true;
     role = lib.mkDefault "server";
     serverAddr = lib.mkDefault "";
-    tokenFile = lib.mkDefault null;
+    tokenFile = lib.mkIf config.services.k3s.enable (lib.mkDefault config.sops.secrets.k3s-token.path);
     # version = "v1.26.4+k3s1";
     extraFlags = [
       "--disable traefik"
@@ -26,7 +31,7 @@
   ];
 
   networking.firewall.allowedUDPPorts = lib.mkIf config.services.k3s.enable [
-    8472 # Flannel VXLAN
+    8472 # Flannel VXLAN: required if using multi-node for inter-node networking
   ];
 
   environment.systemPackages = with pkgs; [
