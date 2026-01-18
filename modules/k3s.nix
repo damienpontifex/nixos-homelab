@@ -26,6 +26,7 @@
       #   "--disable local-storage"
       #   "--disable-cloud-controller"
       #   "--disable-helm-controller"
+      "--tls-san ${config.networking.hostName}.local"
     ];
 
     autoDeployCharts.argocd = lib.mkIf (config.services.k3s.role == "server") {
