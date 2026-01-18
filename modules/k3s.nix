@@ -26,6 +26,7 @@
       #   "--disable local-storage"
       #   "--disable-cloud-controller"
       "--tls-san ${config.networking.hostName}.local"
+      "--tls-san k8s.pontifex.dev"
     ];
 
     autoDeployCharts.argocd = lib.mkIf (config.services.k3s.role == "server") {
@@ -64,7 +65,7 @@
               path = "apps/";
               directory = {
                 recurse = true;
-                include = "application.yaml";
+                include = "*/application.yaml";
               };
             };
             destination = {
