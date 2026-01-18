@@ -120,6 +120,39 @@ upgrade-homeserver:
 homeserver-upgrade-logs:
   ssh ponti@homeserver.local 'journalctl -xeu nixos-upgrade.service'
 
+[group('ops')]
+homelab-kubeconfig:
+  #!/usr/bin/env bash
+  set -euo pipefail
+  
+  # Backup current config
+  cp ~/.kube/config ~/.kube/config.backup
+  
+  # Remove any existing homelab entries from current config
+  kubectl config delete-context homelab 2>/dev/null || true
+  kubectl config delete-cluster homelab 2>/dev/null || true
+  kubectl config delete-user homelab 2>/dev/null || true
+  
+  # Get k3s config from homeserver
+  ssh ponti@homeserver.local 'sudo k3s kubectl config view --raw' > /tmp/homelab-k3s-config.yaml
+  
+  # Rename cluster, user, context and fix server address
+  sed -i.bak \
+    -e 's/name: default$/name: homelab/g' \
+    -e 's/cluster: default$/cluster: homelab/g' \
+    -e 's/user: default$/user: homelab/g' \
+    -e 's|https://127.0.0.1:|https://homeserver.local:|g' \
+    /tmp/homelab-k3s-config.yaml
+  
+  # Merge with existing config
+  KUBECONFIG=~/.kube/config:/tmp/homelab-k3s-config.yaml kubectl config view --flatten > ~/.kube/config.new
+  mv ~/.kube/config.new ~/.kube/config
+  
+  # Clean up
+  rm /tmp/homelab-k3s-config.yaml /tmp/homelab-k3s-config.yaml.bak
+  
+  echo "Successfully merged homelab kubeconfig. Backup saved at ~/.kube/config.backup"
+
 # Build Raspberry Pi SD card image for rpi-node-1
 rpi-image: _ensure_container
     docker exec {{container_name}} sh -c 'nix build .#packages.aarch64-linux.rpi-node-1 && ls -lh result/sd-image/*.img'

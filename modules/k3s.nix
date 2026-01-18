@@ -10,10 +10,8 @@
     sopsFile = ../secrets.yaml;
   };
 
-  # On NixOS
-  # sudo k3s kubectl config view --raw > ~/.kube/config
-  # On local
-  # scp user@host:~/.kube/config ~/.kube/config
+  # To get the kubeconfig from the k3s server and replace the server address:
+  # `just homelab-kubeconfig`
   services.k3s = {
     enable = true;
     role = lib.mkDefault "server";
