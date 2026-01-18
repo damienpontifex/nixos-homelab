@@ -45,6 +45,55 @@
         };
       };
     };
+
+    # Bootstrap ArgoCD Application for Homelab
+    manifests = {
+      homelab-application = {
+        enable = true;
+        target = "homelab-application.yaml";
+        content = {
+          apiVersion = "argoproj.io/v1alpha1";
+          kind = "Application";
+          metadata = {
+            name = "homelab";
+            namespace = "argocd";
+          };
+          spec = {
+            project = "default";
+            source = {
+              repoURL = "https://github.com/damienpontifex/homelab";
+              path = "apps/";
+              directory = {
+                recurse = true;
+              };
+            };
+            destination = {
+              name = "in-cluster";
+              namespace = "default";
+            };
+            syncPolicy = {
+              automated = {
+                enabled = true;
+                prune = true;
+                selfHeal = true;
+              };
+              syncOptions = [
+                "ServerSideApply=true"
+                "CreateNamespace=true"
+              ];
+              retry = {
+                limit = 2;
+                backoff = {
+                  duration = "5s";
+                  factor = 2;
+                  maxDuration = "3m";
+                };
+              };
+            };
+          };
+        };
+      };
+    };
   };
 
   # Automatically open firewall ports for k3s
