@@ -25,7 +25,6 @@
       #   "--disable servicelb"
       #   "--disable local-storage"
       #   "--disable-cloud-controller"
-      #   "--disable-helm-controller"
       "--tls-san ${config.networking.hostName}.local"
     ];
 
@@ -65,6 +64,7 @@
               path = "apps/";
               directory = {
                 recurse = true;
+                include = "application.yaml";
               };
             };
             destination = {
