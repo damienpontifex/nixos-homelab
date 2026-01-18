@@ -21,25 +21,29 @@
     tokenFile = lib.mkIf config.services.k3s.enable (lib.mkDefault config.sops.secrets.k3s-token.path);
     # version = "v1.26.4+k3s1";
     extraFlags = [
-      "--disable traefik"
-      "--disable servicelb"
-      "--disable local-storage"
-      "--disable-cloud-controller"
-      "--disable-helm-controller"
+      #   "--disable traefik"
+      #   "--disable servicelb"
+      #   "--disable local-storage"
+      #   "--disable-cloud-controller"
+      #   "--disable-helm-controller"
     ];
 
-    autoDeployCharts.argocd =
-      lib.mkIf (config.services.k3s.role == "server") {
-        name = "argocd";
-        repo = "oci://ghcr.io/argoproj/argo-helm/argo-cd";
-        # renovate: datasource=helm registryUrl=https://argoproj.github.io/argo-helm depName=argo-cd
-        version = "9.3.4";
-        hash = "sha256-dpTJFsJgs8rZU3ejxgyggLSpeYGGZnFTPLeQVMV0wG0=";
-        targetNamespace = "argocd";
-        createNamespace = true;
-        values = {
+    autoDeployCharts.argocd = lib.mkIf (config.services.k3s.role == "server") {
+      name = "argocd";
+      repo = "oci://ghcr.io/argoproj/argo-helm/argo-cd";
+      # renovate: datasource=helm registryUrl=https://argoproj.github.io/argo-helm depName=argo-cd
+      version = "9.3.4";
+      hash = "sha256-dpTJFsJgs8rZU3ejxgyggLSpeYGGZnFTPLeQVMV0wG0=";
+      targetNamespace = "argocd";
+      createNamespace = true;
+      values = {
+        configs = {
+          cm = {
+            "kustomize.buildOptions" = "--enable-helm";
+          };
         };
       };
+    };
   };
 
   # Automatically open firewall ports for k3s
