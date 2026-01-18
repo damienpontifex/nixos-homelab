@@ -43,7 +43,7 @@
             "kustomize.buildOptions" = "--enable-helm";
           };
           rbac = {
-            policy.default = "role:readonly";
+            "policy.default" = "role:readonly";
           };
         };
       };
