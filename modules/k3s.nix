@@ -34,6 +34,7 @@
         repo = "oci://ghcr.io/argoproj/argo-helm/argo-cd";
         # renovate: datasource=helm registryUrl=https://argoproj.github.io/argo-helm depName=argo-cd
         version = "9.3.4";
+        hash = "sha256-dpTJFsJgs8rZU3ejxgyggLSpeYGGZnFTPLeQVMV0wG0=";
         targetNamespace = "argocd";
         createNamespace = true;
         values = {
