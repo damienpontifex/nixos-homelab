@@ -112,6 +112,14 @@ install-machine HOSTNAME HOST_IP: _ensure_container
         --generate-hardware-config nixos-generate-config ./hosts/{{HOSTNAME}}/hardware-configuration.nix
     '
 
+[group('ops')]
+upgrade-homeserver:
+  ssh ponti@homeserver.local 'sudo systemctl start nixos-upgrade'
+
+[group('ops')]
+homeserver-upgrade-logs:
+  ssh ponti@homeserver.local 'journalctl -xeu nixos-upgrade.service'
+
 # Build Raspberry Pi SD card image for rpi-node-1
 rpi-image: _ensure_container
     docker exec {{container_name}} sh -c 'nix build .#packages.aarch64-linux.rpi-node-1 && ls -lh result/sd-image/*.img'
