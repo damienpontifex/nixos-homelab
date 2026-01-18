@@ -10,6 +10,10 @@
     sopsFile = ../secrets.yaml;
   };
 
+  # On NixOS
+  # sudo k3s kubectl config view --raw > ~/.kube/config
+  # On local
+  # scp user@host:~/.kube/config ~/.kube/config
   services.k3s = {
     enable = true;
     role = lib.mkDefault "server";
@@ -23,6 +27,18 @@
       "--disable-cloud-controller"
       "--disable-helm-controller"
     ];
+
+    autoDeployCharts.argocd =
+      lib.mkIf (config.services.k3s.role == "server") {
+        name = "argocd";
+        repo = "oci://ghcr.io/argoproj/argo-helm/argo-cd";
+        # renovate: datasource=helm registryUrl=https://argoproj.github.io/argo-helm depName=argo-cd
+        version = "9.3.4";
+        targetNamespace = "argocd";
+        createNamespace = true;
+        values = {
+        };
+      };
   };
 
   # Automatically open firewall ports for k3s
