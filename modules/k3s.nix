@@ -27,6 +27,9 @@
       #   "--disable-cloud-controller"
       "--tls-san ${config.networking.hostName}.local"
       "--tls-san k8s.pontifex.dev"
+      "--kube-apiserver-arg=anonymous-auth=true"
+      "--kube-apiserver-arg=service-account-issuer=https://homelab.pontifex.dev"
+      "--kube-apiserver-arg=service-account-jwks-uri=https://homelab.pontifex.dev/openid/v1/jwks"
     ];
 
     autoDeployCharts.argocd = lib.mkIf (config.services.k3s.role == "server") {
