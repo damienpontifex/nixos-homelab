@@ -7,6 +7,6 @@
     ./networking.nix
     ./ssh.nix
     ./sops.nix
-    ./git-auto-update.nix
+    ./auto-upgrade.nix
   ];
 }

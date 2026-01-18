@@ -14,11 +14,4 @@
   # Boot loader configuration for EFI systems
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
-
-  # Enable automatic updates from git repository
-  services.nixos-git-update = {
-    enable = true;
-    repository = "https://github.com/damienpontifex/nixos-homelab.git";
-    branch = "main";
-  };
 }
