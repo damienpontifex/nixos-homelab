@@ -11,6 +11,14 @@
     neovim
   ];
 
+  fonts.packages = [
+    pkgs.nerd-fonts.jetbrains-mono
+  ];
+
+  fonts.fontconfig.defaultFonts = {
+    monospace = [ "JetBrainsMono Nerd Font" ];
+  };
+
   nixpkgs.config.allowUnfree = true;
 
   nix = {
@@ -23,8 +31,10 @@
       auto-optimise-store = true;
     };
 
+    # systemctl status nix-optimise.(timer|service)
     optimise.automatic = true;
 
+    # systemctl status nix-gc.(timer|service)
     gc = {
       automatic = true;
       dates = "weekly";
