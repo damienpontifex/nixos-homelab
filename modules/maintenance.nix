@@ -1,6 +1,7 @@
-{ config, ... }:
+{ config, pkgs, ... }:
 {
   # systemctl status nixos-upgrade.(timer|service)
+  # sudo systemctl start nixos-upgrade
   # journalctl -xeu nixos-upgrade.service
   # To see definition of service including ExecStart as script being run
   # cat /etc/systemd/system/nixos-upgrade.service
