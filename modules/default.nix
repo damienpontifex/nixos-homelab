@@ -7,6 +7,6 @@
     ./networking.nix
     ./ssh.nix
     ./sops.nix
-    ./auto-upgrade.nix
+    ./maintenance.nix
   ];
 }

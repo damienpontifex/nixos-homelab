@@ -21,26 +21,11 @@
 
   nixpkgs.config.allowUnfree = true;
 
-  nix = {
-    # Enable flakes on deployed systems (for local nixos-rebuild operations)
-    settings = {
-      experimental-features = [
-        "nix-command"
-        "flakes"
-      ];
-      auto-optimise-store = true;
-    };
-
-    # systemctl status nix-optimise.(timer|service)
-    optimise.automatic = true;
-
-    # systemctl status nix-gc.(timer|service)
-    gc = {
-      automatic = true;
-      dates = "weekly";
-      options = "--delete-older-than 30d";
-    };
-  };
+  # Enable flakes on deployed systems (for local nixos-rebuild operations)
+  nix.settings.experimental-features = [
+    "nix-command"
+    "flakes"
+  ];
 
   system.stateVersion = "25.11";
 }
