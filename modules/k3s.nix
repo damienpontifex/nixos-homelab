@@ -115,6 +115,10 @@
             # Allow manifests to deploy from any Git repos under damienpontifex GitHub account
             sourceRepos = [
               "https://github.com/damienpontifex/*"
+              "https://jameswynn.github.io/helm-charts" # homepage
+              "https://charts.external-secrets.io"
+              "https://kyverno.github.io/kyverno"
+              "https://kubernetes.github.io/*"
             ];
             # Allow deployment to any namespace on the cluster
             destinations = [
