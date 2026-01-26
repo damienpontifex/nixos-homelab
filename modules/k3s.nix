@@ -41,7 +41,7 @@
       repo = "https://helm.cilium.io/";
       # renovate: datasource=helm registryUrl=https://helm.cilium.io depName=cilium
       version = "1.18.6";
-      hash = "sha256-pu7BLc/66RGLGgLqjP+xWfGKdYAEW6KLMCs+LGLrSuQ=";
+      hash = "sha256-+yr38lc5X1+eXCFE/rq/K0m4g/IiNFJHuhB+Nu24eUs=";
       targetNamespace = "kube-system";
       createNamespace = false; # kube-system already exists
       values = {
