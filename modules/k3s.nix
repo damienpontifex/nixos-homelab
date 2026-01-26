@@ -42,12 +42,12 @@
       targetNamespace = "argocd";
       createNamespace = true;
       values = {
-        global = {
-          domain = "argocd.home.pontifex.dev";
-        };
+        # global = {
+        #   domain = "argocd.home.pontifex.dev";
+        # };
         server = {
           ingress = {
-            enabled = true;
+            enabled = false;
             ingressClassName = "traefik";
             tls = true;
             annotations = {
