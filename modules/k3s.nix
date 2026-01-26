@@ -19,15 +19,17 @@
     tokenFile = lib.mkIf config.services.k3s.enable (lib.mkDefault config.sops.secrets.k3s-token.path);
     # version = "v1.26.4+k3s1";
     extraFlags = [
-      #   "--disable traefik"
-      #   "--disable servicelb"
-      #   "--disable local-storage"
       #   "--disable-cloud-controller"
       "--tls-san ${config.networking.hostName}.local"
       "--tls-san k8s.pontifex.dev"
       "--kube-apiserver-arg=anonymous-auth=true"
       "--kube-apiserver-arg=service-account-issuer=https://homelab.pontifex.dev"
       "--kube-apiserver-arg=service-account-jwks-uri=https://homelab.pontifex.dev/openid/v1/jwks"
+    ];
+    disable = [
+      #   "traefik"
+      #   "servicelb"
+      #   "local-storage"
     ];
 
     autoDeployCharts.argocd = lib.mkIf (config.services.k3s.role == "server") {
@@ -95,6 +97,32 @@
                 };
               };
             };
+          };
+        };
+      };
+      homelab-project = {
+        enable = true;
+        target = "homelab-project.yaml";
+        content = {
+          apiVersion = "argoproj.io/v1alpha1"
+          kind = "AppProject"
+          metadata = {
+            name = "homelab"
+            namespace = "argocd"
+          };
+          spec = {
+            description = "pontifex.dev Homelab"
+            # Allow manifests to deploy from any Git repos under damienpontifex GitHub account
+            sourceRepos = [
+              "https://github.com/damienpontifex/*"
+            ];
+            # Allow deployment to any namespace on the cluster
+            destinations = [
+              {
+                namespace = "*"
+                server = "*"
+              }
+            ];
           };
         };
       };
