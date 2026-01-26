@@ -9,7 +9,6 @@
     ponti = {
       isNormalUser = true;
       hashedPasswordFile = config.sops.secrets.pontiUserPassword.path;
-      shell = pkgs.zsh;
       extraGroups = [
         "networkmanager"
         "wheel"
