@@ -34,6 +34,7 @@
 
     autoDeployCharts.argocd = lib.mkIf (config.services.k3s.role == "server") {
       name = "argocd";
+      # https://artifacthub.io/packages/helm/argo-cd-oci/argo-cd
       repo = "oci://ghcr.io/argoproj/argo-helm/argo-cd";
       # renovate: datasource=helm registryUrl=https://argoproj.github.io/argo-helm depName=argo-cd
       version = "9.3.4";
@@ -41,6 +42,15 @@
       targetNamespace = "argocd";
       createNamespace = true;
       values = {
+        global = {
+          domain = "argocd.pontifex.dev";
+        };
+        server = {
+          ingress = {
+            enabled = true;
+            ingressClassName = "traefik";
+          };
+        };
         configs = {
           cm = {
             "kustomize.buildOptions" = "--enable-helm";
