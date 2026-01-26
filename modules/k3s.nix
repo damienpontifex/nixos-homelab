@@ -65,7 +65,7 @@
             namespace = "argocd";
           };
           spec = {
-            project = "default";
+            project = "homelab";
             source = {
               repoURL = "https://github.com/damienpontifex/homelab";
               path = "apps/";
