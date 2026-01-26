@@ -42,9 +42,9 @@
       targetNamespace = "argocd";
       createNamespace = true;
       values = {
-        # global = {
-        #   domain = "localhost"; # "argocd.home.pontifex.dev";
-        # };
+        global = {
+          domain = "argocd.home.pontifex.dev";
+        };
         server = {
           ingress = {
             enabled = true;
