@@ -8,7 +8,6 @@
       Type = "oneshot";
       ExecStart = "/run/current-system/sw/bin/poweroff";
     };
-    wantedBy = [ "default.target" ];
   };
 
   # systemctl status nixos-upgrade.(timer|service)
