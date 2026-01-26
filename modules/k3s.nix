@@ -56,9 +56,9 @@
           };
         };
         configs = {
-          # params = {
-          #   "server.insecure" = "true";
-          # };
+          params = {
+            "server.insecure" = "true";
+          };
           cm = {
             "kustomize.buildOptions" = "--enable-helm";
           };
