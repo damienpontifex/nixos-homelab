@@ -1,5 +1,16 @@
 { config, pkgs, ... }:
 {
+  systemd.services.shutdown-at-night = {
+    # Shutdown at night
+    description = "Poweroff Service";
+    startAt = [ "*-*-* 21:00:00" ];
+    serviceConfig = {
+      Type = "oneshot";
+      ExecStart = "/run/current-system/sw/bin/poweroff";
+    };
+    wantedBy = [ "default.target" ];
+  };
+
   # systemctl status nixos-upgrade.(timer|service)
   # sudo systemctl start nixos-upgrade
   # journalctl -xeu nixos-upgrade.service
