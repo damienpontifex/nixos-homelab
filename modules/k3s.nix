@@ -42,19 +42,19 @@
       targetNamespace = "argocd";
       createNamespace = true;
       values = {
-        global = {
-          domain = "localhost"; # "argocd.home.pontifex.dev";
-        };
-        server = {
-          ingress = {
-            enabled = false;
-            ingressClassName = "traefik";
-            tls = true;
-            annotations = {
-              "cert-manager.io/cluster-issuer" = "letsencrypt-prod";
-            };
-          };
-        };
+        # global = {
+        #   domain = "localhost"; # "argocd.home.pontifex.dev";
+        # };
+        # server = {
+        #   ingress = {
+        #     enabled = false;
+        #     ingressClassName = "traefik";
+        #     tls = true;
+        #     annotations = {
+        #       "cert-manager.io/cluster-issuer" = "letsencrypt-prod";
+        #     };
+        #   };
+        # };
         configs = {
           params = {
             "server.insecure" = "true";
