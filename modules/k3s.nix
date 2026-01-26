@@ -10,6 +10,11 @@
     sopsFile = ../secrets.yaml;
   };
 
+  environment.systemPackages = with pkgs; [
+    cilium-cli
+    kubectl
+  ];
+
   # To get the kubeconfig from the k3s server and replace the server address:
   # `just homelab-kubeconfig`
   services.k3s = {
@@ -169,9 +174,5 @@
 
   networking.firewall.allowedUDPPorts = lib.mkIf config.services.k3s.enable [
     8472 # Flannel VXLAN: required if using multi-node for inter-node networking
-  ];
-
-  environment.systemPackages = with pkgs; [
-    kubectl
   ];
 }
