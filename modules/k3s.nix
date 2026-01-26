@@ -49,9 +49,16 @@
           ingress = {
             enabled = true;
             ingressClassName = "traefik";
+            tls = true;
+            annotations = {
+              "cert-manager.io/cluster-issuer" = "letsencrypt-prod";
+            };
           };
         };
         configs = {
+          params = {
+            "server.insecure" = "true";
+          };
           cm = {
             "kustomize.buildOptions" = "--enable-helm";
           };
