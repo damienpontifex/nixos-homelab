@@ -61,9 +61,14 @@
           };
           cm = {
             "kustomize.buildOptions" = "--enable-helm";
+            "accounts.gethomepage" = "apiKey";
+            "accounts.gethomepage.enabled" = "false";
           };
           rbac = {
             "policy.default" = "role:readonly";
+            "policy.csv" = ''
+              p, gethomepage, role:readonly
+            '';
           };
         };
       };
