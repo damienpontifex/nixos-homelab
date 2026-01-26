@@ -31,6 +31,7 @@
       #   "servicelb"
       #   "local-storage"
     ];
+    gracefulNodeShutdown.enable = true;
 
     autoDeployCharts.argocd = lib.mkIf (config.services.k3s.role == "server") {
       name = "argocd";
@@ -62,12 +63,11 @@
           cm = {
             "kustomize.buildOptions" = "--enable-helm";
             "accounts.gethomepage" = "apiKey";
-            "accounts.gethomepage.enabled" = "false";
           };
           rbac = {
             "policy.default" = "role:readonly";
             "policy.csv" = ''
-              p, gethomepage, role:readonly
+              p, gethomepage, *, *, *, role:readonly
             '';
           };
         };
