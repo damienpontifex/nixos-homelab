@@ -59,7 +59,7 @@
         # Use native routing (no encapsulation) for best performance
         routingMode = "native";
         autoDirectNodeRoutes = true;
-        # ipv4NativeRoutingCIDR = "10.42.0.0/16"; # k3s default pod CIDR
+        ipv4NativeRoutingCIDR = "192.168.1.0/24"; # k3s default pod CIDR
 
         # Enable eBPF-based kube-proxy replacement for better performance
         kubeProxyReplacement = true;
