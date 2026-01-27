@@ -24,60 +24,61 @@
     tokenFile = lib.mkIf config.services.k3s.enable (lib.mkDefault config.sops.secrets.k3s-token.path);
     # version = "v1.26.4+k3s1";
     extraFlags = [
-      #   "--disable-cloud-controller"
+      "--disable-cloud-controller"
       "--tls-san ${config.networking.hostName}.local"
       "--tls-san k8s.pontifex.dev"
       "--kube-apiserver-arg=anonymous-auth=true"
       "--kube-apiserver-arg=service-account-issuer=https://homelab.pontifex.dev"
       "--kube-apiserver-arg=service-account-jwks-uri=https://homelab.pontifex.dev/openid/v1/jwks"
-      # "--flannel-backend=none" # Disable Flannel to use Cilium
-      # "--disable-network-policy" # Let Cilium handle network policies
+      "--flannel-backend=none" # Disable Flannel to use Cilium
+      "--disable-network-policy" # Let Cilium handle network policies
+      "--disable-kube-proxy" # Let Cilium handle kube-proxy functionality
     ];
     disable = [
-      #   "traefik"
-      #   "servicelb"
+      "traefik"
+      "servicelb"
       #   "local-storage"
     ];
     gracefulNodeShutdown.enable = true;
 
-    #     autoDeployCharts.cilium = lib.mkIf (config.services.k3s.role == "server") {
-    #       name = "cilium";
-    #       # https://artifacthub.io/packages/helm/cilium/cilium
-    #       repo = "https://helm.cilium.io/";
-    #       # renovate: datasource=helm registryUrl=https://helm.cilium.io depName=cilium
-    #       version = "1.18.6";
-    #       hash = "sha256-+yr38lc5X1+eXCFE/rq/K0m4g/IiNFJHuhB+Nu24eUs=";
-    #       targetNamespace = "kube-system";
-    #       createNamespace = false; # kube-system already exists
-    #       values = {
-    #         # Basic k3s integration settings
-    #         # Required for kube-proxy replacement to work correctly
-    #         k8sServiceHost = "${config.networking.hostName}.local";
-    #         k8sServicePort = "6443";
-    # 
-    #         # Use native routing (no encapsulation) for best performance
-    #         routingMode = "native";
-    #         autoDirectNodeRoutes = true;
-    #         ipv4NativeRoutingCIDR = "10.42.0.0/16"; # k3s default pod CIDR
-    # 
-    #         # Enable eBPF-based kube-proxy replacement for better performance
-    #         kubeProxyReplacement = true;
-    # 
-    #         # Enable Hubble for network observability
-    #         hubble = {
-    #           relay.enabled = true;
-    #           ui.enabled = true;
-    #         };
-    # 
-    #         # BGP Control Plane (for future BGP integration if needed)
-    #         bgpControlPlane.enabled = true;
-    #       };
-    #       # Enable bootstrap mode to install Cilium before the Kubernetes API is fully available
-    #       # This is equivalent to what staticContentPort does in the nixpkgs k3s module
-    #       extraFieldDefinitions = {
-    #         spec.bootstrap = true;
-    #       };
-    #     };
+    autoDeployCharts.cilium = lib.mkIf (config.services.k3s.role == "server") {
+      name = "cilium";
+      # https://artifacthub.io/packages/helm/cilium/cilium
+      repo = "https://helm.cilium.io/";
+      # renovate: datasource=helm registryUrl=https://helm.cilium.io depName=cilium
+      version = "1.18.6";
+      hash = "sha256-+yr38lc5X1+eXCFE/rq/K0m4g/IiNFJHuhB+Nu24eUs=";
+      targetNamespace = "kube-system";
+      createNamespace = false; # kube-system already exists
+      values = {
+        # Basic k3s integration settings
+        # Required for kube-proxy replacement to work correctly
+        k8sServiceHost = "${config.networking.hostName}.local";
+        k8sServicePort = "6443";
+
+        # Use native routing (no encapsulation) for best performance
+        routingMode = "native";
+        autoDirectNodeRoutes = true;
+        # ipv4NativeRoutingCIDR = "10.42.0.0/16"; # k3s default pod CIDR
+
+        # Enable eBPF-based kube-proxy replacement for better performance
+        kubeProxyReplacement = true;
+
+        # Enable Hubble for network observability
+        hubble = {
+          relay.enabled = true;
+          ui.enabled = true;
+        };
+
+        # BGP Control Plane (for future BGP integration if needed)
+        bgpControlPlane.enabled = true;
+      };
+      # Enable bootstrap mode to install Cilium before the Kubernetes API is fully available
+      # This is equivalent to what staticContentPort does in the nixpkgs k3s module
+      extraFieldDefinitions = {
+        spec.bootstrap = true;
+      };
+    };
 
     autoDeployCharts.argocd = lib.mkIf (config.services.k3s.role == "server") {
       name = "argocd";
