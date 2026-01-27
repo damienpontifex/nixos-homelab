@@ -20,6 +20,7 @@
     role = lib.mkDefault "server";
     cni = "cilium";
     tokenFile = lib.mkIf config.services.rke2.enable (lib.mkDefault config.sops.secrets.k3s-token.path);
+    configPath = "/etc/rancher/rke2/config.yaml";
   };
 
   # NetworkManager: Ignore CNI-managed interfaces
@@ -36,6 +37,14 @@
     k = "kubectl --kubeconfig=/etc/rancher/rke2/rke2.yaml";
   };
 
+  environment.etc."rancher/rke2/config.yaml" = {
+    text = ''
+      tls-san:
+        - ${config.networking.hostName}.local
+        - k8s.pontifex.dev
+    '';
+    mode = "0600";
+  };
   # To get the kubeconfig from the k3s server and replace the server address:
   # `just homelab-kubeconfig`
   services.k3s = {
