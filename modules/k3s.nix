@@ -71,6 +71,11 @@
         # BGP Control Plane (for future BGP integration if needed)
         bgpControlPlane.enabled = true;
       };
+      # Enable bootstrap mode to install Cilium before the Kubernetes API is fully available
+      # This is equivalent to what staticContentPort does in the nixpkgs k3s module
+      extraFieldDefinitions = {
+        spec.bootstrap = true;
+      };
     };
 
     autoDeployCharts.argocd = lib.mkIf (config.services.k3s.role == "server") {
