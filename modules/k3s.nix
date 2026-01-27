@@ -15,10 +15,31 @@
     kubectl
   ];
 
+  services.rke2 = {
+    enable = true;
+    role = lib.mkDefault "server";
+    cni = "cilium";
+    tokenFile = lib.mkIf config.services.rke2.enable (lib.mkDefault config.sops.secrets.k3s-token.path);
+  };
+
+  # NetworkManager: Ignore CNI-managed interfaces
+  ## [As the official documentation for RKE2 requires at the time of writing this](https://docs.rke2.io/known_issues#networkmanager)
+  networking.networkmanager.unmanaged = [
+    "interface-name:cni*"
+    "interface-name:flannel*"
+    "interface-name:veth*"
+    "interface-name:cali*"
+    "interface-name:tunl*"
+  ];
+
+  programs.bash.shellAliases = lib.mkIf config.services.rke2.enable {
+    k = "kubectl --kubeconfig=/etc/rancher/rke2/rke2.yaml";
+  };
+
   # To get the kubeconfig from the k3s server and replace the server address:
   # `just homelab-kubeconfig`
   services.k3s = {
-    enable = true;
+    enable = false;
     role = lib.mkDefault "server";
     serverAddr = lib.mkDefault "";
     tokenFile = lib.mkIf config.services.k3s.enable (lib.mkDefault config.sops.secrets.k3s-token.path);
