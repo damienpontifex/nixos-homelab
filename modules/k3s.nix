@@ -6,7 +6,7 @@
 }:
 {
   # Configure sops secret for k3s token
-  sops.secrets.k3s-token = lib.mkIf config.services.k3s.enable {
+  sops.secrets.k3s-token = lib.mkIf config.services.rke2.enable {
     sopsFile = ../secrets.yaml;
   };
 
