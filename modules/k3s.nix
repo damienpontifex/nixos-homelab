@@ -51,8 +51,9 @@
       createNamespace = false; # kube-system already exists
       values = {
         # Basic k3s integration settings
-        # k8sServiceHost = "localhost";
-        # k8sServicePort = "6443";
+        # Required for kube-proxy replacement to work correctly
+        k8sServiceHost = "${config.networking.hostName}.local";
+        k8sServicePort = "6443";
 
         # Use native routing (no encapsulation) for best performance
         routingMode = "native";
