@@ -30,6 +30,8 @@
       "--kube-apiserver-arg=anonymous-auth=true"
       "--kube-apiserver-arg=service-account-issuer=https://homelab.pontifex.dev"
       "--kube-apiserver-arg=service-account-jwks-uri=https://homelab.pontifex.dev/openid/v1/jwks"
+      "--flannel-backend=none" # Disable Flannel to use Cilium
+      "--disable-network-policy" # Let Cilium handle network policies
     ];
     disable = [
       #   "traefik"
@@ -37,6 +39,39 @@
       #   "local-storage"
     ];
     gracefulNodeShutdown.enable = true;
+
+    autoDeployCharts.cilium = lib.mkIf (config.services.k3s.role == "server") {
+      name = "cilium";
+      # https://artifacthub.io/packages/helm/cilium/cilium
+      repo = "https://helm.cilium.io/";
+      # renovate: datasource=helm registryUrl=https://helm.cilium.io depName=cilium
+      version = "1.18.6";
+      hash = "sha256-pu7BLc/66RGLGgLqjP+xWfGKdYAEW6KLMCs+LGLrSuQ=";
+      targetNamespace = "kube-system";
+      createNamespace = false; # kube-system already exists
+      values = {
+        # Basic k3s integration settings
+        k8sServiceHost = "localhost";
+        k8sServicePort = "6443";
+
+        # Use native routing (no encapsulation) for best performance
+        routingMode = "native";
+        autoDirectNodeRoutes = true;
+        ipv4NativeRoutingCIDR = "10.42.0.0/16"; # k3s default pod CIDR
+
+        # Enable eBPF-based kube-proxy replacement for better performance
+        kubeProxyReplacement = true;
+
+        # Enable Hubble for network observability
+        hubble = {
+          relay.enabled = true;
+          ui.enabled = true;
+        };
+
+        # BGP Control Plane (for future BGP integration if needed)
+        bgpControlPlane.enabled = true;
+      };
+    };
 
     autoDeployCharts.argocd = lib.mkIf (config.services.k3s.role == "server") {
       name = "argocd";
@@ -170,9 +205,12 @@
   # Automatically open firewall ports for k3s
   networking.firewall.allowedTCPPorts = lib.mkIf config.services.k3s.enable [
     6443 # k3s API server
+    4244 # Cilium health checks
+    4245 # Cilium Hubble relay
   ];
 
   networking.firewall.allowedUDPPorts = lib.mkIf config.services.k3s.enable [
-    8472 # Flannel VXLAN: required if using multi-node for inter-node networking
+    # 8472 # Flannel VXLAN: no longer needed with native routing
+    4240 # Cilium health checks (UDP)
   ];
 }
