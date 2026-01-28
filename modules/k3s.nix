@@ -4,6 +4,24 @@
   lib,
   ...
 }:
+let
+  userConfig = config.users.users.ponti;
+  pontiHome = userConfig.home;
+
+  copyKubeconfigScript = pkgs.writeShellApplication {
+    name = "copy-k3s-config";
+    runtimeInputs = [ pkgs.coreutils ]; # Adds these to the script's PATH
+    text = ''
+      while [ ! -f /etc/rancher/k3s/k3s.yaml ]; do
+        sleep 1
+      done
+      mkdir -p "${pontiHome}/.kube"
+      cp /etc/rancher/k3s/k3s.yaml "${pontiHome}/.kube/config"
+      chown ${userConfig.name}:users /home/user/.kube/config
+      chmod 600 "${pontiHome}/.kube/config"
+    '';
+  };
+in
 {
   # Configure sops secret for k3s token
   sops.secrets.k3s-token = lib.mkIf config.services.rke2.enable {
@@ -11,10 +29,13 @@
   };
 
   environment.systemPackages = with pkgs; [
+    # cilium status && cilium connectivity test
     cilium-cli
     kubectl
   ];
 
+  # systemctl status rke2-server
+  # journalctl -xeu rke2-server
   services.rke2 = {
     enable = true;
     role = lib.mkDefault "server";
@@ -37,11 +58,24 @@
     k = "kubectl --kubeconfig=/etc/rancher/rke2/rke2.yaml";
   };
 
+  systemd.services.copy-k3s-config = {
+    description = "Copy k3s kubeconfig and adjust server address";
+    after = [ "k3s.service" ];
+    requires = [ "k3s.service" ];
+    wantedBy = [ "multi-user.target" ];
+
+    serviceConfig = {
+      Type = "oneshot";
+      RemainAfterExit = true;
+      ExecStart = "${copyKubeconfigScript}";
+  };
+
   environment.etc."rancher/rke2/config.yaml" = {
     text = ''
       tls-san:
         - ${config.networking.hostName}.local
         - k8s.pontifex.dev
+      write-kubeconfig-mode: 600
     '';
     mode = "0600";
   };
@@ -63,6 +97,7 @@
       "--flannel-backend=none" # Disable Flannel to use Cilium
       "--disable-network-policy" # Let Cilium handle network policies
       "--disable-kube-proxy" # Let Cilium handle kube-proxy functionality
+      "--write-kubeconfig-mode=0664"
     ];
     disable = [
       "traefik"
@@ -83,13 +118,13 @@
       values = {
         # Basic k3s integration settings
         # Required for kube-proxy replacement to work correctly
-        k8sServiceHost = "${config.networking.hostName}.local";
+        k8sServiceHost = "localhost";
         k8sServicePort = "6443";
 
         # Use native routing (no encapsulation) for best performance
         routingMode = "native";
         autoDirectNodeRoutes = true;
-        ipv4NativeRoutingCIDR = "192.168.1.0/24"; # k3s default pod CIDR
+        ipv4NativeRoutingCIDR = "10.42.0.0/16"; # k3s default pod CIDR
 
         # Enable eBPF-based kube-proxy replacement for better performance
         kubeProxyReplacement = true;
