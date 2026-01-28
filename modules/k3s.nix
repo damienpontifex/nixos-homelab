@@ -24,7 +24,7 @@ let
 in
 {
   # Configure sops secret for k3s token
-  sops.secrets.k3s-token = lib.mkIf config.services.rke2.enable {
+  sops.secrets.k3s-token = lib.mkIf config.services.k3s.enable {
     sopsFile = ../secrets.yaml;
   };
 
@@ -37,7 +37,7 @@ in
   # systemctl status rke2-server
   # journalctl -xeu rke2-server
   services.rke2 = {
-    enable = true;
+    enable = false;
     role = lib.mkDefault "server";
     cni = "cilium";
     tokenFile = lib.mkIf config.services.rke2.enable (lib.mkDefault config.sops.secrets.k3s-token.path);
@@ -83,7 +83,7 @@ in
   # To get the kubeconfig from the k3s server and replace the server address:
   # `just homelab-kubeconfig`
   services.k3s = {
-    enable = false;
+    enable = true;
     role = lib.mkDefault "server";
     serverAddr = lib.mkDefault "";
     tokenFile = lib.mkIf config.services.k3s.enable (lib.mkDefault config.sops.secrets.k3s-token.path);
