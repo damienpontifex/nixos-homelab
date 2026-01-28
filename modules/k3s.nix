@@ -68,6 +68,7 @@ in
       Type = "oneshot";
       RemainAfterExit = true;
       ExecStart = "${copyKubeconfigScript}";
+    };
   };
 
   environment.etc."rancher/rke2/config.yaml" = {
