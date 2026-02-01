@@ -182,7 +182,7 @@ in
               "azure.workload.identity/tenant-id" = "ff2b9041-8733-4fbd-a4e6-23f30567c4a4";
             };
           };
-          podAnnotations = {
+          podLabels = {
             "azure.workload.identity/use" = "true";
           };
         };
@@ -194,7 +194,7 @@ in
             "kustomize.buildOptions" = "--enable-helm";
             "accounts.gethomepage" = "apiKey";
             "oidc.config" = ''
-              name: Azure
+              name: SSO
               issuer: https://login.microsoftonline.com/ff2b9041-8733-4fbd-a4e6-23f30567c4a4/v2.0
               clientID: ea227ff8-7b75-4f0f-83a9-7638e949faf3
               azure:
