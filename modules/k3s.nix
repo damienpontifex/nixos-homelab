@@ -97,14 +97,14 @@ in
       "--kube-apiserver-arg=service-account-jwks-uri=https://homelab.pontifex.dev/openid/v1/jwks"
       "--write-kubeconfig-mode=0664"
       # Cilium
-      "--flannel-backend=none" # Disable Flannel to use Cilium
-      "--disable-kube-proxy" # Let Cilium handle kube-proxy functionality
-      "--disable-network-policy" # Let Cilium handle network policies
+      # "--flannel-backend=none" # Disable Flannel to use Cilium
+      # "--disable-kube-proxy" # Let Cilium handle kube-proxy functionality
+      # "--disable-network-policy" # Let Cilium handle network policies
     ];
     disable = [
-      "traefik"
-      "servicelb"
-      #   "local-storage"
+      # "traefik"
+      # "servicelb"
+      # "local-storage"
     ];
     gracefulNodeShutdown.enable = true;
 
