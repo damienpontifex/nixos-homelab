@@ -113,13 +113,15 @@ install-machine HOSTNAME HOST_IP: _ensure_container
         --generate-hardware-config nixos-generate-config ./hosts/{{HOSTNAME}}/hardware-configuration.nix
     '
 
+# Start NixOS upgrade on remote {{HOST}}
 [group('ops')]
-upgrade-homeserver:
-  ssh ponti@homeserver.local 'sudo systemctl start nixos-upgrade'
+upgrade HOST="homeserver.local":
+  ssh ponti@{{HOST}} 'sudo systemctl start nixos-upgrade'
 
+# View NixOS upgrade logs on remote {{HOST}}
 [group('ops')]
-homeserver-upgrade-logs:
-  ssh ponti@homeserver.local 'journalctl -xeu nixos-upgrade.service'
+upgrade-logs HOST="homeserver.local":
+  ssh ponti@{{HOST}} 'journalctl -xeu nixos-upgrade.service'
 
 [group('ops')]
 homelab-kubeconfig:

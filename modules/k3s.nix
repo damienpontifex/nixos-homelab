@@ -283,7 +283,6 @@ in
         };
       };
       cloudflare-namespace = {
-        enable = lib.mkIf (config.services.k3s.role == "server") true false;
         target = "cloudflare-namespace.yaml";
         content = {
           apiVersion = "v1";
@@ -294,7 +293,6 @@ in
         };
       };
       cloudflare-token-secret = {
-        enable = lib.mkIf (config.services.k3s.role == "server") true false;
         target = "cloudflare-token-secret.yaml";
         content = {
           apiVersion = "v1";
