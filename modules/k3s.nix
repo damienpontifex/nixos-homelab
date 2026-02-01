@@ -131,6 +131,10 @@ in
         # Enable eBPF-based kube-proxy replacement for better performance
         kubeProxyReplacement = true;
 
+        operator = {
+          replicas = 1;
+        };
+
         # Enable Hubble for network observability
         hubble = {
           relay.enabled = true;
