@@ -32,6 +32,22 @@ in
     sopsFile = ../secrets.yaml;
   };
 
+  # Create a template for the cloudflare token secret
+  sops.templates."cloudflare-token-secret.yaml" = lib.mkIf config.services.k3s.enable {
+    content = ''
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        name: cloudflare-tunnel-token
+        namespace: cloudflare-tunnel
+      type: Opaque
+      stringData:
+        token: ${config.sops.placeholder.cloudflare-token}
+    '';
+    owner = "root";
+    mode = "0400";
+  };
+
   environment.systemPackages = with pkgs; [
     # cilium status && cilium connectivity test
     cilium-cli
@@ -296,18 +312,8 @@ in
       };
       cloudflare-token-secret = {
         target = "cloudflare-token-secret.yaml";
-        content = {
-          apiVersion = "v1";
-          kind = "Secret";
-          metadata = {
-            name = "cloudflare-tunnel-token";
-            namespace = "cloudflare-tunnel";
-          };
-          type = "Opaque";
-          data = {
-            token = builtins.readFile config.sops.secrets.cloudflare-token.path;
-          };
-        };
+        # Use the sops template instead of trying to read the file directly
+        source = config.sops.templates."cloudflare-token-secret.yaml".path;
       };
     };
   };
