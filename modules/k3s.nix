@@ -44,8 +44,8 @@ in
       stringData:
         token: ${config.sops.placeholder.cloudflare-token}
     '';
-    owner = "root";
-    mode = "0400";
+    owner = userConfig.name;
+    mode = "0600";
   };
 
   environment.systemPackages = with pkgs; [
