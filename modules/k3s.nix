@@ -108,176 +108,176 @@ in
     ];
     gracefulNodeShutdown.enable = true;
 
-    autoDeployCharts.cilium = lib.mkIf (config.services.k3s.role == "server") {
-      name = "cilium";
-      # https://artifacthub.io/packages/helm/cilium/cilium
-      repo = "https://helm.cilium.io/";
-      # renovate: datasource=helm registryUrl=https://helm.cilium.io depName=cilium
-      version = "1.18.6";
-      hash = "sha256-+yr38lc5X1+eXCFE/rq/K0m4g/IiNFJHuhB+Nu24eUs=";
-      targetNamespace = "kube-system";
-      createNamespace = false; # kube-system already exists
+    # autoDeployCharts.cilium = lib.mkIf (config.services.k3s.role == "server") {
+    #   name = "cilium";
+    #   # https://artifacthub.io/packages/helm/cilium/cilium
+    #   repo = "https://helm.cilium.io/";
+    #   # renovate: datasource=helm registryUrl=https://helm.cilium.io depName=cilium
+    #   version = "1.18.6";
+    #   hash = "sha256-+yr38lc5X1+eXCFE/rq/K0m4g/IiNFJHuhB+Nu24eUs=";
+    #   targetNamespace = "kube-system";
+    #   createNamespace = false; # kube-system already exists
+    #   values = {
+    #     # Basic k3s integration settings
+    #     # Required for kube-proxy replacement to work correctly
+    #     k8sServiceHost = "localhost";
+    #     k8sServicePort = "6443";
+    #
+    #     # Use native routing (no encapsulation) for best performance
+    #     routingMode = "native";
+    #     autoDirectNodeRoutes = true;
+    #     ipv4NativeRoutingCIDR = "10.42.0.0/16"; # k3s default pod CIDR
+    #
+    #     # Enable eBPF-based kube-proxy replacement for better performance
+    #     kubeProxyReplacement = true;
+    #
+    #     operator = {
+    #       replicas = 1;
+    #     };
+    #
+    #     # Enable Hubble for network observability
+    #     hubble = {
+    #       relay.enabled = true;
+    #       ui.enabled = true;
+    #     };
+    #
+    #     # BGP Control Plane (for future BGP integration if needed)
+    #     bgpControlPlane.enabled = true;
+    #   };
+    #   # Enable bootstrap mode to install Cilium before the Kubernetes API is fully available
+    #   # This is equivalent to what staticContentPort does in the nixpkgs k3s module
+    #   extraFieldDefinitions = {
+    #     spec.bootstrap = true;
+    #   };
+    # };
+
+    autoDeployCharts.argocd = lib.mkIf (config.services.k3s.role == "server") {
+      name = "argocd";
+      # https://artifacthub.io/packages/helm/argo-cd-oci/argo-cd
+      repo = "oci://ghcr.io/argoproj/argo-helm/argo-cd";
+      # renovate: datasource=helm registryUrl=https://argoproj.github.io/argo-helm depName=argo-cd
+      version = "9.3.4";
+      hash = "sha256-dpTJFsJgs8rZU3ejxgyggLSpeYGGZnFTPLeQVMV0wG0=";
+      targetNamespace = "argocd";
+      createNamespace = true;
       values = {
-        # Basic k3s integration settings
-        # Required for kube-proxy replacement to work correctly
-        k8sServiceHost = "localhost";
-        k8sServicePort = "6443";
-
-        # Use native routing (no encapsulation) for best performance
-        routingMode = "native";
-        autoDirectNodeRoutes = true;
-        ipv4NativeRoutingCIDR = "10.42.0.0/16"; # k3s default pod CIDR
-
-        # Enable eBPF-based kube-proxy replacement for better performance
-        kubeProxyReplacement = true;
-
-        operator = {
-          replicas = 1;
+        global = {
+          domain = "argocd.home.pontifex.dev";
         };
-
-        # Enable Hubble for network observability
-        hubble = {
-          relay.enabled = true;
-          ui.enabled = true;
+        server = {
+          ingress = {
+            enabled = true;
+            ingressClassName = "traefik";
+            tls = true;
+            annotations = {
+              "cert-manager.io/cluster-issuer" = "letsencrypt-prod";
+            };
+          };
         };
-
-        # BGP Control Plane (for future BGP integration if needed)
-        bgpControlPlane.enabled = true;
-      };
-      # Enable bootstrap mode to install Cilium before the Kubernetes API is fully available
-      # This is equivalent to what staticContentPort does in the nixpkgs k3s module
-      extraFieldDefinitions = {
-        spec.bootstrap = true;
+        configs = {
+          params = {
+            "server.insecure" = "true";
+          };
+          cm = {
+            "kustomize.buildOptions" = "--enable-helm";
+            "accounts.gethomepage" = "apiKey";
+          };
+          rbac = {
+            "policy.default" = "role:readonly";
+            "policy.csv" = ''
+              p, gethomepage, *, *, *, role:readonly
+            '';
+          };
+        };
       };
     };
 
-  #   autoDeployCharts.argocd = lib.mkIf (config.services.k3s.role == "server") {
-  #     name = "argocd";
-  #     # https://artifacthub.io/packages/helm/argo-cd-oci/argo-cd
-  #     repo = "oci://ghcr.io/argoproj/argo-helm/argo-cd";
-  #     # renovate: datasource=helm registryUrl=https://argoproj.github.io/argo-helm depName=argo-cd
-  #     version = "9.3.4";
-  #     hash = "sha256-dpTJFsJgs8rZU3ejxgyggLSpeYGGZnFTPLeQVMV0wG0=";
-  #     targetNamespace = "argocd";
-  #     createNamespace = true;
-  #     values = {
-  #       global = {
-  #         domain = "argocd.home.pontifex.dev";
-  #       };
-  #       server = {
-  #         ingress = {
-  #           enabled = true;
-  #           ingressClassName = "traefik";
-  #           tls = true;
-  #           annotations = {
-  #             "cert-manager.io/cluster-issuer" = "letsencrypt-prod";
-  #           };
-  #         };
-  #       };
-  #       configs = {
-  #         params = {
-  #           "server.insecure" = "true";
-  #         };
-  #         cm = {
-  #           "kustomize.buildOptions" = "--enable-helm";
-  #           "accounts.gethomepage" = "apiKey";
-  #         };
-  #         rbac = {
-  #           "policy.default" = "role:readonly";
-  #           "policy.csv" = ''
-  #             p, gethomepage, *, *, *, role:readonly
-  #           '';
-  #         };
-  #       };
-  #     };
-  #   };
-  #
-  #   # Bootstrap ArgoCD Application for Homelab
-  #   manifests = {
-  #     homelab-application = {
-  #       enable = true;
-  #       target = "homelab-application.yaml";
-  #       content = {
-  #         apiVersion = "argoproj.io/v1alpha1";
-  #         kind = "Application";
-  #         metadata = {
-  #           name = "homelab";
-  #           namespace = "argocd";
-  #         };
-  #         spec = {
-  #           project = "homelab";
-  #           source = {
-  #             repoURL = "https://github.com/damienpontifex/homelab";
-  #             path = "apps/";
-  #             directory = {
-  #               recurse = true;
-  #               include = "*/application.yaml";
-  #             };
-  #           };
-  #           destination = {
-  #             name = "in-cluster";
-  #             namespace = "default";
-  #           };
-  #           syncPolicy = {
-  #             automated = {
-  #               enabled = true;
-  #               prune = true;
-  #               selfHeal = true;
-  #             };
-  #             syncOptions = [
-  #               "ServerSideApply=true"
-  #               "CreateNamespace=true"
-  #             ];
-  #             retry = {
-  #               limit = 2;
-  #               backoff = {
-  #                 duration = "5s";
-  #                 factor = 2;
-  #                 maxDuration = "3m";
-  #               };
-  #             };
-  #           };
-  #         };
-  #       };
-  #     };
-  #     homelab-project = {
-  #       enable = true;
-  #       target = "homelab-project.yaml";
-  #       content = {
-  #         apiVersion = "argoproj.io/v1alpha1";
-  #         kind = "AppProject";
-  #         metadata = {
-  #           name = "homelab";
-  #           namespace = "argocd";
-  #         };
-  #         spec = {
-  #           description = "pontifex.dev Homelab";
-  #           # Allow manifests to deploy from any Git repos under damienpontifex GitHub account
-  #           sourceRepos = [
-  #             # "https://github.com/damienpontifex/*"
-  #             # "https://jameswynn.github.io/helm-charts" # homepage
-  #             # "https://charts.external-secrets.io"
-  #             # "https://kyverno.github.io/kyverno"
-  #             # "https://kubernetes.github.io/*"
-  #             "*"
-  #           ];
-  #           # Allow deployment to any namespace on the cluster
-  #           destinations = [
-  #             {
-  #               namespace = "*";
-  #               server = "*";
-  #             }
-  #           ];
-  #           clusterResourceWhitelist = [
-  #             {
-  #               group = "*";
-  #               kind = "*";
-  #             }
-  #           ];
-  #         };
-  #       };
-  #     };
-  #   };
+    # Bootstrap ArgoCD Application for Homelab
+    manifests = {
+      homelab-application = {
+        enable = true;
+        target = "homelab-application.yaml";
+        content = {
+          apiVersion = "argoproj.io/v1alpha1";
+          kind = "Application";
+          metadata = {
+            name = "homelab";
+            namespace = "argocd";
+          };
+          spec = {
+            project = "homelab";
+            source = {
+              repoURL = "https://github.com/damienpontifex/homelab";
+              path = "apps/";
+              directory = {
+                recurse = true;
+                include = "*/application.yaml";
+              };
+            };
+            destination = {
+              name = "in-cluster";
+              namespace = "default";
+            };
+            syncPolicy = {
+              automated = {
+                enabled = true;
+                prune = true;
+                selfHeal = true;
+              };
+              syncOptions = [
+                "ServerSideApply=true"
+                "CreateNamespace=true"
+              ];
+              retry = {
+                limit = 2;
+                backoff = {
+                  duration = "5s";
+                  factor = 2;
+                  maxDuration = "3m";
+                };
+              };
+            };
+          };
+        };
+      };
+      homelab-project = {
+        enable = true;
+        target = "homelab-project.yaml";
+        content = {
+          apiVersion = "argoproj.io/v1alpha1";
+          kind = "AppProject";
+          metadata = {
+            name = "homelab";
+            namespace = "argocd";
+          };
+          spec = {
+            description = "pontifex.dev Homelab";
+            # Allow manifests to deploy from any Git repos under damienpontifex GitHub account
+            sourceRepos = [
+              # "https://github.com/damienpontifex/*"
+              # "https://jameswynn.github.io/helm-charts" # homepage
+              # "https://charts.external-secrets.io"
+              # "https://kyverno.github.io/kyverno"
+              # "https://kubernetes.github.io/*"
+              "*"
+            ];
+            # Allow deployment to any namespace on the cluster
+            destinations = [
+              {
+                namespace = "*";
+                server = "*";
+              }
+            ];
+            clusterResourceWhitelist = [
+              {
+                group = "*";
+                kind = "*";
+              }
+            ];
+          };
+        };
+      };
+    };
   };
 
   # Automatically open firewall ports for k3s
