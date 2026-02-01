@@ -274,7 +274,7 @@ in
   #       };
   #     };
   #   };
-  # };
+  };
 
   # Automatically open firewall ports for k3s
   networking.firewall.allowedTCPPorts = lib.mkIf config.services.k3s.enable [
