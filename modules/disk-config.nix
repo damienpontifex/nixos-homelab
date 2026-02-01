@@ -8,6 +8,12 @@
       type = lib.types.str;
       description = "The device path for the main disk (e.g., /dev/sda or /dev/vda)";
     };
+
+    useSwap = lib.mkOption {
+      type = lib.types.bool;
+      default = true;
+      description = "Use swap partition";
+    };
   };
 
   config = {
@@ -29,6 +35,7 @@
                   mountOptions = [ "umask=0077" ]; # So only the root user can read/write
                 };
               };
+            } // lib.optionalAttrs config.diskConfig.useSwap {
               swap = {
                 size = "8G"; # Default matching RAM
                 content = {
@@ -37,6 +44,7 @@
                   resumeDevice = true; # Allows for hibernation support
                 };
               };
+            } // {
               root = {
                 size = "100%";
                 content = {

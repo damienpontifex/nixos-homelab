@@ -7,7 +7,10 @@
   ];
 
   # Disk configuration
-  diskConfig.device = "/dev/sda";
+  diskConfig = {
+    device = "/dev/sda";
+    useSwap = false;
+  };
 
   networking.hostName = "homeserver";
 
