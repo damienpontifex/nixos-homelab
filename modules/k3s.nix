@@ -87,6 +87,8 @@ in
   };
   # To get the kubeconfig from the k3s server and replace the server address:
   # `just homelab-kubeconfig`
+  # Guide https://github.com/NixOS/nixpkgs/blob/master/pkgs/applications/networking/cluster/k3s/README.md
+  # If wanting to remove https://github.com/NixOS/nixpkgs/blob/master/pkgs/applications/networking/cluster/k3s/docs/CLUSTER_UPKEEP.md
   services.k3s = {
     enable = true;
     role = lib.mkDefault "server";
@@ -303,7 +305,7 @@ in
           };
           type = "Opaque";
           data = {
-            token = lib.base64EncodeFile config.sops.secrets.cloudflare-token.path;
+            token = builtins.readFile config.sops.secrets.cloudflare-token.path;
           };
         };
       };
@@ -313,12 +315,9 @@ in
   # Automatically open firewall ports for k3s
   networking.firewall.allowedTCPPorts = lib.mkIf config.services.k3s.enable [
     6443 # k3s API server
-    4244 # Cilium health checks
-    4245 # Cilium Hubble relay
   ];
 
   networking.firewall.allowedUDPPorts = lib.mkIf config.services.k3s.enable [
-    # 8472 # Flannel VXLAN: no longer needed with native routing
-    4240 # Cilium health checks (UDP)
+    8472 # k3s: flannel: required if using multi-node for intern-node networking
   ];
 }
