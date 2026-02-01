@@ -209,6 +209,7 @@ in
             "policy.default" = "role:readonly";
             "policy.csv" = ''
               p, gethomepage, *, *, *, role:readonly
+              p, 01c9f9ea-c5b3-4e43-a2f8-d60fa4ba6d8d, *, *, *, role:org-admin
             '';
           };
         };
