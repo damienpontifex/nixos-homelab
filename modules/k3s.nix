@@ -28,10 +28,15 @@ in
     sopsFile = ../secrets.yaml;
   };
 
+  sops.secrets.cloudflare-token = lib.mkIf config.services.k3s.enable {
+    sopsFile = ../secrets.yaml;
+  };
+
   environment.systemPackages = with pkgs; [
     # cilium status && cilium connectivity test
     cilium-cli
     kubectl
+    kubernetes-helm
   ];
 
   # systemctl status rke2-server
@@ -274,6 +279,33 @@ in
                 kind = "*";
               }
             ];
+          };
+        };
+      };
+      cloudflare-namespace = {
+        enable = lib.mkIf (config.services.k3s.role == "server") true false;
+        target = "cloudflare-namespace.yaml";
+        content = {
+          apiVersion = "v1";
+          kind = "Namespace";
+          metadata = {
+            name = "cloudflare-tunnel";
+          };
+        };
+      };
+      cloudflare-token-secret = {
+        enable = lib.mkIf (config.services.k3s.role == "server") true false;
+        target = "cloudflare-token-secret.yaml";
+        content = {
+          apiVersion = "v1";
+          kind = "Secret";
+          metadata = {
+            name = "cloudflare-tunnel-token";
+            namespace = "cloudflare-tunnel";
+          };
+          type = "Opaque";
+          data = {
+            token = lib.base64EncodeFile config.sops.secrets.cloudflare-token.path;
           };
         };
       };
