@@ -55,28 +55,8 @@ in
     kubernetes-helm
   ];
 
-  # systemctl status rke2-server
-  # journalctl -xeu rke2-server
-  services.rke2 = {
-    enable = false;
-    role = lib.mkDefault "server";
-    cni = "cilium";
-    tokenFile = lib.mkIf config.services.rke2.enable (lib.mkDefault config.sops.secrets.k3s-token.path);
-    configPath = "/etc/rancher/rke2/config.yaml";
-  };
-
-  # NetworkManager: Ignore CNI-managed interfaces
-  ## [As the official documentation for RKE2 requires at the time of writing this](https://docs.rke2.io/known_issues#networkmanager)
-  networking.networkmanager.unmanaged = [
-    "interface-name:cni*"
-    "interface-name:flannel*"
-    "interface-name:veth*"
-    "interface-name:cali*"
-    "interface-name:tunl*"
-  ];
-
-  programs.bash.shellAliases = lib.mkIf config.services.rke2.enable {
-    k = "kubectl --kubeconfig=/etc/rancher/rke2/rke2.yaml";
+  programs.bash.shellAliases = lib.mkIf config.services.k3s.enable {
+    k = "kubectl --kubeconfig=/etc/rancher/k3s/k3s.yaml";
   };
 
   systemd.services.copy-k3s-config = {
@@ -92,15 +72,15 @@ in
     };
   };
 
-  environment.etc."rancher/rke2/config.yaml" = {
-    text = ''
-      tls-san:
-        - ${config.networking.hostName}.local
-        - k8s.pontifex.dev
-      write-kubeconfig-mode: 600
-    '';
-    mode = "0600";
-  };
+  # Automatically open firewall ports for k3s
+  networking.firewall.allowedTCPPorts = lib.mkIf config.services.k3s.enable [
+    6443 # k3s API server
+  ];
+
+  networking.firewall.allowedUDPPorts = lib.mkIf config.services.k3s.enable [
+    8472 # k3s: flannel: required if using multi-node for intern-node networking
+  ];
+
   # To get the kubeconfig from the k3s server and replace the server address:
   # `just homelab-kubeconfig`
   # Guide https://github.com/NixOS/nixpkgs/blob/master/pkgs/applications/networking/cluster/k3s/README.md
@@ -196,6 +176,15 @@ in
               "cert-manager.io/cluster-issuer" = "letsencrypt-prod";
             };
           };
+          serviceAccount = {
+            annotations = {
+              "azure.workload.identity/client-id" = "ea227ff8-7b75-4f0f-83a9-7638e949faf3";
+              "azure.workload.identity/tenant-id" = "ff2b9041-8733-4fbd-a4e6-23f30567c4a4";
+            };
+          };
+          podAnnotations = {
+            "azure.workload.identity/use" = "true";
+          };
         };
         configs = {
           params = {
@@ -204,6 +193,17 @@ in
           cm = {
             "kustomize.buildOptions" = "--enable-helm";
             "accounts.gethomepage" = "apiKey";
+            "oidc.config" = ''
+              name: Azure
+              issuer: https://login.microsoftonline.com/ff2b9041-8733-4fbd-a4e6-23f30567c4a4/v2.0
+              clientID: ea227ff8-7b75-4f0f-83a9-7638e949faf3
+              azure:
+                useWorkloadIdentity: true
+              requestedScopes:
+                - openid
+                - profile
+                - email
+            '';
           };
           rbac = {
             "policy.default" = "role:readonly";
@@ -317,13 +317,4 @@ in
       };
     };
   };
-
-  # Automatically open firewall ports for k3s
-  networking.firewall.allowedTCPPorts = lib.mkIf config.services.k3s.enable [
-    6443 # k3s API server
-  ];
-
-  networking.firewall.allowedUDPPorts = lib.mkIf config.services.k3s.enable [
-    8472 # k3s: flannel: required if using multi-node for intern-node networking
-  ];
 }
