@@ -1,5 +1,6 @@
 # Container name for persistent Nix cache
 container_name := "nixos-homelab-builder"
+dev_container_name := "nixos-homelab-dev"
 
 # Display available commands and their descriptions
 help:
@@ -11,8 +12,8 @@ clean:
     @echo "Container {{container_name}} removed. Volumes preserved for caching. Next command will create a fresh container."
 
 [group('dev')]
-fmt: _ensure_container
-    docker exec {{container_name}} nix fmt .
+fmt: _ensure_dev_container
+    docker exec {{dev_container_name}} nix fmt .
 
 lint-unused: _ensure_container
     @echo "Checking for unused code with deadnix..."
@@ -172,10 +173,41 @@ _ensure_container:
     elif docker ps -a --format '{{{{.Names}}' | grep -q "^{{container_name}}$"; then
         # Container exists but is stopped
         echo "Starting existing container {{container_name}}..."
-        GITHUB_TOKEN=$(gh auth token 2>/dev/null || echo '') docker compose up -d
+        GITHUB_TOKEN=$(gh auth token 2>/dev/null || echo '') docker compose up -d nix
     else
         # Container doesn't exist
         echo "Creating new container {{container_name}}..."
-        GITHUB_TOKEN=$(gh auth token 2>/dev/null || echo '') docker compose up -d
+        GITHUB_TOKEN=$(gh auth token 2>/dev/null || echo '') docker compose up -d nix
     fi
+
+# Check if dev container exists and is running, start it if stopped, create if it doesn't exist
+_ensure_dev_container:
+    #!/usr/bin/env bash
+    if docker ps --format '{{{{.Names}}' | grep -q "^{{dev_container_name}}$"; then
+        # Container is running
+        true
+    elif docker ps -a --format '{{{{.Names}}' | grep -q "^{{dev_container_name}}$"; then
+        # Container exists but is stopped
+        echo "Starting existing dev container {{dev_container_name}}..."
+        GITHUB_TOKEN=$(gh auth token 2>/dev/null || echo '') docker compose up -d nix-dev
+    else
+        # Container doesn't exist
+        echo "Creating new dev container {{dev_container_name}}..."
+        GITHUB_TOKEN=$(gh auth token 2>/dev/null || echo '') docker compose up -d nix-dev
+    fi
+
+
+tunnel:
+  #!/usr/bin/env bash
+  set -uox pipefail
+  [ -f ~/.cloudflared/cert.pem ] || cloudflared tunnel login
+  TUNNEL=$(cloudflared tunnel list --name cf-demo-2 --output json | tee /dev/tty | jq '.[0]' --exit-status)
+  if [ $? -ne 0 ]; then
+    TUNNEL=$(cloudflared tunnel create --output json cf-demo-2 | tee /dev/tty)
+  fi
+  TUNNEL_ID=$(jq --raw-output '.id' <<< "$TUNNEL")
+  cloudflared tunnel route dns --overwrite-dns "$TUNNEL_ID" cf-demo-2.pontifex.dev
+  export TUNNEL_ID
+  envsubst < ~/.cloudflared/cf-demo-1.yml | tee ~/.cloudflared/$TUNNEL_ID.yml
+  cloudflared tunnel --config "$HOME/.cloudflared/$TUNNEL_ID.yml" run "$TUNNEL_ID"
 
