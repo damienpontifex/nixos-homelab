@@ -199,6 +199,10 @@ in
               clientID: ea227ff8-7b75-4f0f-83a9-7638e949faf3
               azure:
                 useWorkloadIdentity: true
+             requestedIDTokenClaims:
+                groups:
+                   essential: true
+                   value: "ApplicationGroup"
               requestedScopes:
                 - openid
                 - profile
@@ -209,8 +213,16 @@ in
             "policy.default" = "role:readonly";
             "policy.csv" = ''
               p, gethomepage, applications, *, */*, role:readonly
+              p, role:org-admin, applications, *, */*, allow
+              p, role:org-admin, clusters, get, *, allow
+              p, role:org-admin, repositories, get, *, allow
+              p, role:org-admin, repositories, create, *, allow
+              p, role:org-admin, repositories, update, *, allow
+              p, role:org-admin, repositories, delete, *, allow
               g, 01c9f9ea-c5b3-4e43-a2f8-d60fa4ba6d8d, role:admin
+              g, damien.pontifex@gmail.com, role:org-admin
             '';
+            scopes = "[groups, email]";
           };
         };
       };
