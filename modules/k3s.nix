@@ -24,28 +24,32 @@ let
 in
 {
   # Configure sops secret for k3s token
-  sops.secrets.k3s-token = lib.mkIf config.services.k3s.enable {
-    sopsFile = ../secrets.yaml;
-  };
+  sops = {
+    secrets = {
+      k3s-token = lib.mkIf config.services.k3s.enable {
+        sopsFile = ../secrets.yaml;
+      };
 
-  sops.secrets.cloudflare-token = lib.mkIf config.services.k3s.enable {
-    sopsFile = ../secrets.yaml;
-  };
+      cloudflare-token = lib.mkIf config.services.k3s.enable {
+        sopsFile = ../secrets.yaml;
+      };
+    };
 
-  # Create a template for the cloudflare token secret
-  sops.templates."cloudflare-token-secret.yaml" = lib.mkIf config.services.k3s.enable {
-    content = ''
-      apiVersion: v1
-      kind: Secret
-      metadata:
-        name: cloudflare-tunnel-token
-        namespace: cloudflare-tunnel
-      type: Opaque
-      stringData:
-        token: ${config.sops.placeholder.cloudflare-token}
-    '';
-    owner = userConfig.name;
-    mode = "0600";
+    # Create a template for the cloudflare token secret
+    templates."cloudflare-token-secret.yaml" = lib.mkIf config.services.k3s.enable {
+      content = ''
+        apiVersion: v1
+        kind: Secret
+        metadata:
+          name: cloudflare-tunnel-token
+          namespace: cloudflare-tunnel
+        type: Opaque
+        stringData:
+          token: ${config.sops.placeholder.cloudflare-token}
+      '';
+      owner = userConfig.name;
+      mode = "0600";
+    };
   };
 
   environment.systemPackages = with pkgs; [
