@@ -1,9 +1,9 @@
 {
   imports = [
     ./hardware-configuration.nix
-    ../../modules # Imports common modules from modules/default.nix
-    ../../modules/disk-config.nix
-    ../../modules/k3s.nix
+    ../../../modules # Imports common modules from modules/default.nix
+    ../../../modules/disk-config.nix
+    ../../../modules/k3s.nix
   ];
 
   # Disk configuration
