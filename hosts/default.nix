@@ -15,7 +15,7 @@ in
     system = "x86_64-linux";
     specialArgs = { inherit self inputs; };
     modules = [
-      ./homeserver
+      ./nixos/homeserver
       disko.nixosModules.disko
       sops-nix.nixosModules.sops
     ];
@@ -24,7 +24,7 @@ in
   rpi-node-1 = lib.nixosSystem {
     system = "aarch64-linux";
     modules = [
-      ./rpi-node-1
+      ./nixos/rpi-node-1
       nixos-hardware.nixosModules.raspberry-pi-4
       sops-nix.nixosModules.sops
     ];
@@ -34,7 +34,7 @@ in
     system = "aarch64-linux";
     specialArgs = { inherit self sops-nix inputs; };
     modules = [
-      ./vm
+      ./nixos/vm
       disko.nixosModules.disko
       sops-nix.nixosModules.sops
     ];
