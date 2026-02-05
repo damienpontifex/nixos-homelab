@@ -17,7 +17,7 @@ let
       done
       mkdir -p "${pontiHome}/.kube"
       cp /etc/rancher/k3s/k3s.yaml "${pontiHome}/.kube/config"
-      chown ${userConfig.name}:users /home/user/.kube/config
+      chown ${userConfig.name}:users "${pontiHome}/.kube/config"
       chmod 600 "${pontiHome}/.kube/config"
     '';
   };
@@ -68,7 +68,7 @@ in
     serviceConfig = {
       Type = "oneshot";
       RemainAfterExit = true;
-      ExecStart = "${copyKubeconfigScript}";
+      ExecStart = "${copyKubeconfigScript}/bin/${copyKubeconfigScript.name}";
     };
   };
 
