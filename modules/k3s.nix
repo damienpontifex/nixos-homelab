@@ -56,7 +56,8 @@ in
   ];
 
   programs.bash.shellAliases = lib.mkIf config.services.k3s.enable {
-    k = "kubectl --kubeconfig=/etc/rancher/k3s/k3s.yaml";
+    k = "kubectl";
+    kgp = "kubectl get pods";
   };
 
   systemd.services.copy-k3s-config = {
