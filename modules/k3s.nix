@@ -200,10 +200,6 @@ in
               clientID: ea227ff8-7b75-4f0f-83a9-7638e949faf3
               azure:
                 useWorkloadIdentity: true
-             requestedIDTokenClaims:
-                groups:
-                   essential: true
-                   value: "ApplicationGroup"
               requestedScopes:
                 - openid
                 - profile
