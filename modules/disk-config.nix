@@ -70,7 +70,7 @@
                   resumeDevice = true; # Allows for hibernation support
                 };
               };
-            }
+            };
           };
         };
       };
