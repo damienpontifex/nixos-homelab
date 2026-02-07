@@ -104,6 +104,11 @@ in
       "--kube-apiserver-arg=service-account-issuer=https://homelab.pontifex.dev"
       "--kube-apiserver-arg=service-account-jwks-uri=https://homelab.pontifex.dev/openid/v1/jwks"
       "--write-kubeconfig-mode=0664"
+      # Entra OIDC for api server
+      "--kube-apiserver-arg=oidc-issuer-url=https://sts.windows.net/ff2b9041-8733-4fbd-a4e6-23f30567c4a4/"
+      "--kube-apiserver-arg=oidc-client-id=f4a70612-f4fa-4f68-818c-5db39de8187d"
+      "--kube-apiserver-arg=oidc-username-claim=email"
+      # "--kube-apiserver-arg=oidc-groups-claim=groups"
       # Cilium
       # "--flannel-backend=none" # Disable Flannel to use Cilium
       # "--disable-kube-proxy" # Let Cilium handle kube-proxy functionality
