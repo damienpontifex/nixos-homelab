@@ -21,7 +21,7 @@
       dates = "02:00";
       randomizedDelaySec = "45min";
       # Use the hostname to select the correct flake output
-      flake = "github:damienpontifex/nixos-homelab#${config.networking.hostName}";
+      flake = "github:damienpontifex/nixos-homelab?ref=main#${config.networking.hostName}";
       flags = [
         "--no-update-lock-file" # We handle lock file updates ourselves
         "--show-trace" # Print build logs
