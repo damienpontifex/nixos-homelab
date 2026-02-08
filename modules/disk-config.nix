@@ -61,7 +61,7 @@
               };
             }
             # 8GB swap partition at the end (if configured)
-              // lib.optionalAttrs config.diskConfig.useSwap {
+            // lib.optionalAttrs config.diskConfig.useSwap {
               swap = {
                 size = "8G"; # Default matching RAM
                 content = {

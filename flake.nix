@@ -31,12 +31,16 @@
       };
 
       # Development shell with linting and formatting tools
+      # Run `nix develop` to enter the shell with these tools available
       devShells.x86_64-linux.default = nixpkgs.legacyPackages.x86_64-linux.mkShell {
         packages = with nixpkgs.legacyPackages.x86_64-linux; [
           deadnix
           statix
           nixfmt-tree
           nil
+          neovim
+          tmux
+          just
         ];
       };
 
