@@ -87,6 +87,7 @@ in
   ];
 
   # Allow metrics-server access to port 10250
+  # These interfaces reflect the k3s networking interfaces
   networking.firewall.interfaces.cni0.allowedTCPPorts = [ 10250 ];
   networking.firewall.interfaces.flannel1.allowedTCPPorts = [ 10250 ];
 
