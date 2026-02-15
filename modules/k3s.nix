@@ -86,6 +86,10 @@ in
     8472 # k3s: flannel: required if using multi-node for intern-node networking
   ];
 
+  # Allow metrics-server access to port 10250
+  networking.firewall.interfaces.cni0.allowedTCPPorts = [ 10250 ];
+  networking.firewall.interfaces.flannel1.allowedTCPPorts = [ 10250 ];
+
   # To get the kubeconfig from the k3s server and replace the server address:
   # `just homelab-kubeconfig`
   # Guide https://github.com/NixOS/nixpkgs/blob/master/pkgs/applications/networking/cluster/k3s/README.md
