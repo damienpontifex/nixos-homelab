@@ -128,12 +128,12 @@ in
       # "--disable-kube-proxy" # Let Cilium handle kube-proxy functionality
       # "--disable-network-policy" # Let Cilium handle network policies
       # Audit logging
-      "--kube-apiserver-arg=enable-admission-plugins=NodeRestriction,EventRateLimit"
-      "--kube-apiserver-arg=audit-log-path=/var/lib/rancher/k3s/server/logs/audit.log"
-      "--kube-apiserver-arg=audit-policy-file=/var/lib/rancher/k3s/server/audit.yaml"
-      "--kube-apiserver-arg=audit-log-maxage=30"
-      "--kube-apiserver-arg=audit-log-maxbackup=10"
-      "--kube-apiserver-arg=audit-log-maxsize=100"
+      # "--kube-apiserver-arg=enable-admission-plugins=NodeRestriction,EventRateLimit"
+      # "--kube-apiserver-arg=audit-log-path=/var/lib/rancher/k3s/server/logs/audit.log"
+      # "--kube-apiserver-arg=audit-policy-file=/var/lib/rancher/k3s/server/audit.yaml"
+      # "--kube-apiserver-arg=audit-log-maxage=30"
+      # "--kube-apiserver-arg=audit-log-maxbackup=10"
+      # "--kube-apiserver-arg=audit-log-maxsize=100"
     ];
     disable = [
       # "traefik"
