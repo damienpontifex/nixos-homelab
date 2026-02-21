@@ -92,7 +92,7 @@ in
   networking.firewall.interfaces.flannel1.allowedTCPPorts = [ 10250 ];
 
   systemd.tmpfiles.rules = [
-    "f /var/lib/rancher/k3s/server/audit.yaml 0600 root root - ${builtins.toFile "audit.yaml" ''
+    "f+ /var/lib/rancher/k3s/server/audit.yaml 1777 root root - ${builtins.toFile "audit.yaml" ''
       apiVersion: audit.k8s.io/v1
       kind: Policy
       rules:
