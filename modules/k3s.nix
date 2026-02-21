@@ -198,6 +198,13 @@ in
         global = {
           domain = "argocd.home.pontifex.dev";
         };
+        controller = {
+          metrics = {
+            serviceMonitor = {
+              enabled = true;
+            };
+          };
+        };
         server = {
           ingress = {
             enabled = true;
