@@ -208,6 +208,9 @@ in
         server = {
           metrics = {
             enabled = true;
+            serviceMonitor = {
+              enabled = true;
+            };
           };
           ingress = {
             enabled = true;
