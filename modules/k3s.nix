@@ -206,6 +206,9 @@ in
           };
         };
         server = {
+          metrics = {
+            enabled = true;
+          };
           ingress = {
             enabled = true;
             ingressClassName = "traefik";
