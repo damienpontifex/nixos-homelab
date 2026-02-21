@@ -91,6 +91,15 @@ in
   networking.firewall.interfaces.cni0.allowedTCPPorts = [ 10250 ];
   networking.firewall.interfaces.flannel1.allowedTCPPorts = [ 10250 ];
 
+  systemd.tmpfiles.rules = [
+    "f /var/lib/rancher/k3s/server/audit.yaml 0600 root root - ${builtins.toFile "audit.yaml" ''
+      apiVersion: audit.k8s.io/v1
+      kind: Policy
+      rules:
+      - level: Metadata
+    ''}"
+  ];
+
   # To get the kubeconfig from the k3s server and replace the server address:
   # `just homelab-kubeconfig`
   # Guide https://github.com/NixOS/nixpkgs/blob/master/pkgs/applications/networking/cluster/k3s/README.md
@@ -118,6 +127,13 @@ in
       # "--flannel-backend=none" # Disable Flannel to use Cilium
       # "--disable-kube-proxy" # Let Cilium handle kube-proxy functionality
       # "--disable-network-policy" # Let Cilium handle network policies
+      # Audit logging
+      "--kube-apiserver-arg=enable-admission-plugins=NodeRestriction,EventRateLimit"
+      "--kube-apiserver-arg=audit-log-path=/var/lib/rancher/k3s/server/logs/audit.log"
+      "--kube-apiserver-arg=audit-policy-file=/var/lib/rancher/k3s/server/audit.yaml"
+      "--kube-apiserver-arg=audit-log-maxage=30"
+      "--kube-apiserver-arg=audit-log-maxbackup=10"
+      "--kube-apiserver-arg=audit-log-maxsize=100"
     ];
     disable = [
       # "traefik"
