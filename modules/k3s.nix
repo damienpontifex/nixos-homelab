@@ -124,9 +124,9 @@ in
       "--kube-apiserver-arg=oidc-username-claim=unique_name"
       "--kube-apiserver-arg=oidc-groups-claim=roles"
       # Cilium
-      # "--flannel-backend=none" # Disable Flannel to use Cilium
-      # "--disable-kube-proxy" # Let Cilium handle kube-proxy functionality
-      # "--disable-network-policy" # Let Cilium handle network policies
+      "--flannel-backend=none" # Disable Flannel to use Cilium
+      "--disable-kube-proxy" # Let Cilium handle kube-proxy functionality
+      "--disable-network-policy" # Let Cilium handle network policies
       # Audit logging
       # "--kube-apiserver-arg=enable-admission-plugins=NodeRestriction,EventRateLimit"
       # "--kube-apiserver-arg=audit-log-path=/var/lib/rancher/k3s/server/logs/audit.log"
@@ -142,48 +142,48 @@ in
     ];
     gracefulNodeShutdown.enable = true;
 
-    # autoDeployCharts.cilium = lib.mkIf (config.services.k3s.role == "server") {
-    #   name = "cilium";
-    #   # https://artifacthub.io/packages/helm/cilium/cilium
-    #   repo = "https://helm.cilium.io/";
-    #   # renovate: datasource=helm registryUrl=https://helm.cilium.io depName=cilium
-    #   version = "1.18.6";
-    #   hash = "sha256-+yr38lc5X1+eXCFE/rq/K0m4g/IiNFJHuhB+Nu24eUs=";
-    #   targetNamespace = "kube-system";
-    #   createNamespace = false; # kube-system already exists
-    #   values = {
-    #     # Basic k3s integration settings
-    #     # Required for kube-proxy replacement to work correctly
-    #     k8sServiceHost = "localhost";
-    #     k8sServicePort = "6443";
-    #
-    #     # Use native routing (no encapsulation) for best performance
-    #     routingMode = "native";
-    #     autoDirectNodeRoutes = true;
-    #     ipv4NativeRoutingCIDR = "10.42.0.0/16"; # k3s default pod CIDR
-    #
-    #     # Enable eBPF-based kube-proxy replacement for better performance
-    #     kubeProxyReplacement = true;
-    #
-    #     operator = {
-    #       replicas = 1;
-    #     };
-    #
-    #     # Enable Hubble for network observability
-    #     hubble = {
-    #       relay.enabled = true;
-    #       ui.enabled = true;
-    #     };
-    #
-    #     # BGP Control Plane (for future BGP integration if needed)
-    #     bgpControlPlane.enabled = true;
-    #   };
-    #   # Enable bootstrap mode to install Cilium before the Kubernetes API is fully available
-    #   # This is equivalent to what staticContentPort does in the nixpkgs k3s module
-    #   extraFieldDefinitions = {
-    #     spec.bootstrap = true;
-    #   };
-    # };
+    autoDeployCharts.cilium = lib.mkIf (config.services.k3s.role == "server") {
+      name = "cilium";
+      # https://artifacthub.io/packages/helm/cilium/cilium
+      repo = "https://helm.cilium.io/";
+      # renovate: datasource=helm registryUrl=https://helm.cilium.io depName=cilium
+      version = "1.19.1";
+      hash = "sha256-+yr38lc5X1+eXCFE/rq/K0m4g/IiNFJHuhB+Nu24eUs=";
+      targetNamespace = "kube-system";
+      createNamespace = false; # kube-system already exists
+      values = {
+        # Basic k3s integration settings
+        # Required for kube-proxy replacement to work correctly
+        k8sServiceHost = "localhost";
+        k8sServicePort = "6443";
+
+        # Use native routing (no encapsulation) for best performance
+        routingMode = "native";
+        autoDirectNodeRoutes = true;
+        ipv4NativeRoutingCIDR = "10.42.0.0/16"; # k3s default pod CIDR
+
+        # Enable eBPF-based kube-proxy replacement for better performance
+        kubeProxyReplacement = true;
+
+        operator = {
+          replicas = 1;
+        };
+
+        # Enable Hubble for network observability
+        hubble = {
+          relay.enabled = true;
+          ui.enabled = true;
+        };
+
+        # BGP Control Plane (for future BGP integration if needed)
+        bgpControlPlane.enabled = true;
+      };
+      # Enable bootstrap mode to install Cilium before the Kubernetes API is fully available
+      # This is equivalent to what staticContentPort does in the nixpkgs k3s module
+      extraFieldDefinitions = {
+        spec.bootstrap = true;
+      };
+    };
 
     autoDeployCharts.argocd = lib.mkIf (config.services.k3s.role == "server") {
       name = "argocd";
