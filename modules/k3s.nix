@@ -148,7 +148,7 @@ in
       repo = "https://helm.cilium.io/";
       # renovate: datasource=helm registryUrl=https://helm.cilium.io depName=cilium
       version = "1.19.1";
-      hash = "sha256-+yr38lc5X1+eXCFE/rq/K0m4g/IiNFJHuhB+Nu24eUs=";
+      hash = "sha256-Uw7b6RnncNLlYcDZQ7An9wjdbH4EGsskGpIJ5G4HMVs=";
       targetNamespace = "kube-system";
       createNamespace = false; # kube-system already exists
       values = {
