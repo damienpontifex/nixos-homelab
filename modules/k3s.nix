@@ -161,6 +161,11 @@ in
         routingMode = "native";
         autoDirectNodeRoutes = true;
         ipv4NativeRoutingCIDR = "10.42.0.0/16"; # k3s default pod CIDR
+        ipam = {
+          operator = {
+            clusterPoolIPv4PodCIDRList = ["10.42.0.0/16"]
+          };
+        };
 
         # Enable eBPF-based kube-proxy replacement for better performance
         kubeProxyReplacement = true;
