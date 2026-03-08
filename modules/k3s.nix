@@ -83,7 +83,8 @@ in
   ];
 
   networking.firewall.allowedUDPPorts = lib.mkIf config.services.k3s.enable [
-    8472 # k3s: flannel: required if using multi-node for intern-node networking
+    8472 # k3s: flannel: required if using multi-node for intern-node networking, also used for Cilium VXLAN
+    4240 # Cilium health check
   ];
 
   # Allow metrics-server access to port 10250
@@ -159,20 +160,22 @@ in
 
         # Use native routing (no encapsulation) for best performance
         routingMode = "native";
-        autoDirectNodeRoutes = true;
         ipv4NativeRoutingCIDR = "10.42.0.0/16"; # k3s default pod CIDR
         ipam = {
-          operator = {
-            clusterPoolIPv4PodCIDRList = ["10.42.0.0/16"]
-          };
+          mode = "kubernetes";
+          operator.clusterPoolIPv4PodCIDRList = ["10.42.0.0/16"];
         };
 
         # Enable eBPF-based kube-proxy replacement for better performance
         kubeProxyReplacement = true;
+        autoDirectNodeRoutes = false;
 
-        operator = {
-          replicas = 1;
+        gatewayAPI = {
+          enabled = true;
+          hostNetwork.enabled = true;
         };
+
+        operator.replicas = 1;
 
         # Enable Hubble for network observability
         hubble = {
