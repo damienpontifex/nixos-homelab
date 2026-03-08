@@ -152,40 +152,7 @@ in
       hash = "sha256-Uw7b6RnncNLlYcDZQ7An9wjdbH4EGsskGpIJ5G4HMVs=";
       targetNamespace = "kube-system";
       createNamespace = false; # kube-system already exists
-      values = {
-        # Basic k3s integration settings
-        # Required for kube-proxy replacement to work correctly
-        k8sServiceHost = "localhost";
-        k8sServicePort = "6443";
-
-        # Use native routing (no encapsulation) for best performance
-        routingMode = "native";
-        ipv4NativeRoutingCIDR = "10.42.0.0/16"; # k3s default pod CIDR
-        ipam = {
-          mode = "kubernetes";
-          operator.clusterPoolIPv4PodCIDRList = ["10.42.0.0/16"];
-        };
-
-        # Enable eBPF-based kube-proxy replacement for better performance
-        kubeProxyReplacement = true;
-        autoDirectNodeRoutes = false;
-
-        gatewayAPI = {
-          enabled = true;
-          hostNetwork.enabled = true;
-        };
-
-        operator.replicas = 1;
-
-        # Enable Hubble for network observability
-        hubble = {
-          relay.enabled = true;
-          ui.enabled = true;
-        };
-
-        # BGP Control Plane (for future BGP integration if needed)
-        bgpControlPlane.enabled = true;
-      };
+      values = ./k3s-bootstrap/cilium-helm-values.yaml;
       # Enable bootstrap mode to install Cilium before the Kubernetes API is fully available
       # This is equivalent to what staticContentPort does in the nixpkgs k3s module
       extraFieldDefinitions = {
@@ -202,78 +169,7 @@ in
       hash = "sha256-dpTJFsJgs8rZU3ejxgyggLSpeYGGZnFTPLeQVMV0wG0=";
       targetNamespace = "argocd";
       createNamespace = true;
-      values = {
-        global = {
-          domain = "argocd.home.pontifex.dev";
-        };
-        controller = {
-          metrics = {
-            serviceMonitor = {
-              enabled = true;
-            };
-          };
-        };
-        server = {
-          metrics = {
-            enabled = true;
-            serviceMonitor = {
-              enabled = true;
-            };
-          };
-          ingress = {
-            enabled = true;
-            ingressClassName = "traefik";
-            tls = true;
-            annotations = {
-              "cert-manager.io/cluster-issuer" = "letsencrypt-prod";
-            };
-          };
-          serviceAccount = {
-            annotations = {
-              "azure.workload.identity/client-id" = "ea227ff8-7b75-4f0f-83a9-7638e949faf3";
-              "azure.workload.identity/tenant-id" = "ff2b9041-8733-4fbd-a4e6-23f30567c4a4";
-            };
-          };
-          podLabels = {
-            "azure.workload.identity/use" = "true";
-          };
-        };
-        configs = {
-          params = {
-            "server.insecure" = "true";
-          };
-          cm = {
-            "kustomize.buildOptions" = "--enable-helm";
-            "accounts.gethomepage" = "apiKey";
-            "oidc.config" = ''
-              name: SSO
-              issuer: https://login.microsoftonline.com/ff2b9041-8733-4fbd-a4e6-23f30567c4a4/v2.0
-              clientID: ea227ff8-7b75-4f0f-83a9-7638e949faf3
-              azure:
-                useWorkloadIdentity: true
-              requestedScopes:
-                - openid
-                - profile
-                - email
-            '';
-          };
-          rbac = {
-            "policy.default" = "role:readonly";
-            "policy.csv" = ''
-              p, gethomepage, applications, *, */*, role:readonly
-              p, role:org-admin, applications, *, */*, allow
-              p, role:org-admin, clusters, get, *, allow
-              p, role:org-admin, repositories, get, *, allow
-              p, role:org-admin, repositories, create, *, allow
-              p, role:org-admin, repositories, update, *, allow
-              p, role:org-admin, repositories, delete, *, allow
-              g, 01c9f9ea-c5b3-4e43-a2f8-d60fa4ba6d8d, role:admin
-              g, damien.pontifex@gmail.com, role:org-admin
-            '';
-            scopes = "[groups, email]";
-          };
-        };
-      };
+      values = ./k3s-bootstrap/argocd-helm-values.yaml;
     };
 
     # Bootstrap ArgoCD Application for Homelab
