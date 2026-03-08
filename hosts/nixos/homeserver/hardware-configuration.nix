@@ -21,7 +21,12 @@
     "sr_mod"
   ];
   boot.initrd.kernelModules = [ ];
-  boot.kernelModules = [ "kvm-intel" "br_netfilter" "overlay" "ip_conntrack" ];
+  boot.kernelModules = [ 
+    "kvm-intel"
+    "br_netfilter" # Required for cilium bridge networking
+    "overlay"      # Required for cilium container storage
+    "ip_conntrack" # Required for cilium connection tracking (BPF masquerading)
+  ];
   boot.extraModulePackages = [ ];
 
   nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
