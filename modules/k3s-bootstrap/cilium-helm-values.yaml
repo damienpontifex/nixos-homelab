@@ -16,6 +16,9 @@ ipam:
 kubeProxyReplacement: true
 autoDirectNodeRoutes: false
 
+bpf:
+  masquerade: true
+
 gatewayAPI:
   enabled: true
   hostNetwork.enabled: true
