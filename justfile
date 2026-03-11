@@ -91,37 +91,54 @@ install-homeserver HOST_IP: (install-machine "homeserver" HOST_IP)
 [group('install')]
 install-vm HOST_IP: (install-machine "vm" HOST_IP)
 
+# Remember, will need to set `passwd` on remote machine
 [group('install')]
 install-machine HOSTNAME HOST_IP: _ensure_container
     #!/usr/bin/env bash
+    set -euo pipefail
+    set -x
     # So don't get errors from nix about unknown files
     git add .
 
-    docker exec -it {{container_name}} sh -c '
-      tempdir=$(mktemp -d)
-      cleanup() {
-        rm -rf "$tempdir"
-      }
-      trap cleanup EXIT
+    tempdir=$(mktemp -d)
+    mkdir -p "$tempdir/var/lib/sops-nix/age"
+    export public_key=$(age-keygen --output "$tempdir/var/lib/sops-nix/age/keys.txt" 2>&1 | awk '{print $3}')
+    # Add the new public key to .sops.yaml
+    yq -i '
+      .keys += (strenv(public_key) | . anchor = "{{HOSTNAME}}") 
+      | .creation_rules[0].key_groups[0].age += ((.keys[-1] | anchor) | . alias |= .)
+    ' .sops.yaml
+    # re-encrypt secrets.yaml with the new key
+    sops updatekeys secrets.yaml
 
-      mkdir -p "$tempdir/var/lib/sops-nix/age"
-      echo "$(tail -1 /var/lib/sops-nix/age/keys.txt)" > "$tempdir/var/lib/sops-nix/age/keys.txt"
+    # Make a temp director in the container and copy the new key in
+    container_tmp_dir=$(docker exec {{dev_container_name}} mktemp -d)
+    docker exec {{dev_container_name}} mkdir -p "$container_tmp_dir/var/lib/sops-nix/age"
+    docker cp "$tempdir/var/lib/sops-nix/age/keys.txt" "{{dev_container_name}}:$container_tmp_dir/var/lib/sops-nix/age/keys.txt"
 
+    docker exec -it {{dev_container_name}} \
       nix run github:numtide/nixos-anywhere -- \
-        --extra-files "$tempdir" \
-        --flake .#{{HOSTNAME}} nixos@{{HOST_IP}} \
-        --generate-hardware-config nixos-generate-config ./hosts/{{HOSTNAME}}/hardware-configuration.nix
-    '
+        --extra-files "$container_tmp_dir" \
+        --flake .#{{HOSTNAME}} nixos@{{HOST_IP}}
+
+_reinstall-machine:
+  tempdir=$(mktemp -d) && \
+  mkdir -p "$tempdir/var/lib/sops-nix/age" && \
+  cp /var/lib/sops-nix/age/keys.txt "$tempdir/var/lib/sops-nix/age/keys.txt" && \
+  sudo nix --extra-experimental-features "nix-command flakes" \
+    run github:numtide/nixos-anywhere -- \
+    --extra-files "$tempdir" \
+    --flake ".#$(hostname)" root@localhost
 
 # Start NixOS upgrade on remote {{HOST}}
 [group('ops')]
-upgrade HOST="homeserver.local":
-  ssh ponti@{{HOST}} 'sudo systemctl start nixos-upgrade'
+upgrade HOST="homeserver":
+  ssh ponti@{{HOST}}.local 'sudo nixos-rebuild switch --flake github:damienpontifex/nixos-homelab#{{HOST}} --show-trace --no-update-lock-file --refresh'
 
 # View NixOS upgrade logs on remote {{HOST}}
 [group('ops')]
 upgrade-logs HOST="homeserver.local":
-  ssh ponti@{{HOST}} 'journalctl -xeu nixos-upgrade.service'
+  ssh ponti@{{HOST}} 'journalctl -fu nixos-upgrade.service'
 
 [group('ops')]
 homelab-kubeconfig:
@@ -191,11 +208,12 @@ _ensure_dev_container:
     elif docker ps -a --format '{{{{.Names}}' | grep -q "^{{dev_container_name}}$"; then
         # Container exists but is stopped
         echo "Starting existing dev container {{dev_container_name}}..."
-        GITHUB_TOKEN=$(gh auth token 2>/dev/null || echo '') docker compose up -d nix-dev
+        GITHUB_TOKEN=$(gh auth token 2>/dev/null || echo '') docker compose up -d
     else
         # Container doesn't exist
         echo "Creating new dev container {{dev_container_name}}..."
-        GITHUB_TOKEN=$(gh auth token 2>/dev/null || echo '') docker compose up -d nix-dev
+        GITHUB_TOKEN=$(gh auth token 2>/dev/null || echo '') docker compose up -d
+        docker exec -it {{dev_container_name}} sh -c 'nix-channel --update'
     fi
 
 

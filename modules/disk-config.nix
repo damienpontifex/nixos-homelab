@@ -16,19 +16,19 @@
     };
   };
 
-# Equivalent manual partitioning (with no swap)
-# Partitioning (ESP first, then Root)
-# parted /dev/sda -- mklabel gpt
-# parted /dev/sda -- mkpart ESP fat32 1MB 513MB (This becomes /dev/sda1)
-# parted /dev/sda -- set 1 esp on
-# parted /dev/sda -- mkpart root ext4 513MB 100% (This becomes /dev/sda2)
-# Formatting & Labeling
-# mkfs.fat -F 32 -n boot /dev/sda1
-# mkfs.ext4 -L nixos /dev/sda2
-# Mounting with Security Flags
-# mount /dev/disk/by-label/nixos /mnt
-# mkdir -p /mnt/boot
-# mount -o umask=0077 /dev/disk/by-label/boot /mnt/boot
+  # Equivalent manual partitioning (with no swap)
+  # Partitioning (ESP first, then Root)
+  # parted /dev/sda -- mklabel gpt
+  # parted /dev/sda -- mkpart ESP fat32 1MB 513MB (This becomes /dev/sda1)
+  # parted /dev/sda -- set 1 esp on
+  # parted /dev/sda -- mkpart root ext4 513MB 100% (This becomes /dev/sda2)
+  # Formatting & Labeling
+  # mkfs.fat -F 32 -n boot /dev/sda1
+  # mkfs.ext4 -L nixos /dev/sda2
+  # Mounting with Security Flags
+  # mount /dev/disk/by-label/nixos /mnt
+  # mkdir -p /mnt/boot
+  # mount -o umask=0077 /dev/disk/by-label/boot /mnt/boot
 
   config = {
     disko.devices = {

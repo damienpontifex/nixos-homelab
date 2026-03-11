@@ -21,10 +21,10 @@
     "sr_mod"
   ];
   boot.initrd.kernelModules = [ ];
-  boot.kernelModules = [ 
+  boot.kernelModules = [
     "kvm-intel"
     "br_netfilter" # Required for cilium bridge networking
-    "overlay"      # Required for cilium container storage
+    "overlay" # Required for cilium container storage
     "ip_conntrack" # Required for cilium connection tracking (BPF masquerading)
   ];
   boot.extraModulePackages = [ ];
