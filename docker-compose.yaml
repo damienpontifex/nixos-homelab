@@ -1,20 +1,25 @@
 services:
   nix:
-    image: nixos/nix
+    image: nixos/nix:2.22.3
     platform: linux/amd64
-    container_name: nixos-homelab-builder
+    container_name: nixos-homelab-dev
     volumes:
-      - .:/build
-      - ~/.config/sops:/var/lib/sops-nix:ro
+      - .:/workspace
+      - ~/.config/sops:/root/.config/sops
       - nix-store:/nix/store
-    working_dir: /build
-    command: sleep infinity
+      - cache:/root/.cache/nix
+      - var:/nix/var
+    working_dir: /workspace
+    stdin_open: true
+    tty: true
     environment:
       NIX_CONFIG: |
         experimental-features = nix-command flakes
         access-tokens = github.com=${GITHUB_TOKEN:-}
         filter-syscalls = false
+        sandbox = false
 
 volumes:
   nix-store:
-    driver: local
+  cache:
+  var:
