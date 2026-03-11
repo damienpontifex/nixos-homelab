@@ -166,7 +166,7 @@ in
       repo = "oci://ghcr.io/argoproj/argo-helm/argo-cd";
       # renovate: datasource=helm registryUrl=https://argoproj.github.io/argo-helm depName=argo-cd
       version = "9.4.10";
-      hash = "sha256-dpTJFsJgs8rZU3ejxgyggLSpeYGGZnFTPLeQVMV0wG0=";
+      hash = "sha256-n1ihetUtB6SbczYPB/geWZxVKV0/L4KKtsrxcbHSul0=";
       targetNamespace = "argocd";
       createNamespace = true;
       values = ./k3s-bootstrap/argocd-helm-values.yaml;
