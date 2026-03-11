@@ -21,7 +21,8 @@ bpf:
 
 gatewayAPI:
   enabled: true
-  hostNetwork.enabled: true
+  hostNetwork:
+    enabled: true
 
 operator:
   replicas: 1
