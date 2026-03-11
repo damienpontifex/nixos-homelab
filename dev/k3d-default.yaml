@@ -1,0 +1,18 @@
+---
+apiVersion: k3d.io/v1alpha5
+kind: Simple
+metadata:
+  name: k3s-default
+servers: 1
+agents: 0
+options:
+  k3s:
+    extraArgs:
+      - { arg: "--flannel-backend=none", nodeFilters: ["server:*"] }
+      - { arg: "--disable-network-policy", nodeFilters: ["server:*"] }
+      - { arg: "--disable-kube-proxy", nodeFilters: ["server:*"] }
+      - { arg: "--disable=traefik", nodeFilters: ["server:*"] }
+      - { arg: "--disable=servicelb", nodeFilters: ["server:*"] }
+volumes:
+  - volume: "${PWD}/k3d-manifests:/var/lib/rancher/k3s/server/manifests/custom"
+    nodeFilters: ["server:*"]

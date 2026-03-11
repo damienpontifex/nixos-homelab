@@ -1,0 +1,48 @@
+apiVersion: helm.cattle.io/v1
+kind: HelmChart
+metadata:
+  name: cilium
+  namespace: kube-system
+spec:
+  repo: https://helm.cilium.io/
+  chart: cilium
+  targetNamespace: kube-system
+  bootstrap: true
+  valuesContent: |-
+    # Basic k3s integration settings
+    # Required for kube-proxy replacement to work correctly
+    k8sServiceHost: "localhost"
+    k8sServicePort: "6443"
+
+    # Use native routing (no encapsulation) for best performance
+    routingMode: "native"
+    ipv4NativeRoutingCIDR: "10.42.0.0/16" # k3s default pod CIDR
+    ipam:
+      mode: "kubernetes"
+      operator:
+        clusterPoolIPv4PodCIDRList: ["10.42.0.0/16"]
+
+    # Enable eBPF-based kube-proxy replacement for better performance
+    kubeProxyReplacement: true
+    autoDirectNodeRoutes: false
+
+    bpf:
+      masquerade: true
+
+    gatewayAPI:
+      enabled: true
+      hostNetwork.enabled: true
+
+    operator:
+      replicas: 1
+
+    # Enable Hubble for network observability
+    hubble:
+      relay:
+        enabled: true
+      ui:
+        enabled: true
+
+    # BGP Control Plane (for future BGP integration if needed)
+    bgpControlPlane:
+      enabled: true
