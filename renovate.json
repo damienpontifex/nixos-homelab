@@ -6,7 +6,7 @@
   "configMigration": true,
   "semanticCommits": "enabled",
   "lockFileMaintenance": {
-    "enabled": false
+    "enabled": true
   },
   "nix": {
     "enabled": true
