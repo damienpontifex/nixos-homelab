@@ -1,0 +1,53 @@
+apiVersion: "argoproj.io/v1alpha1"
+kind: "AppProject"
+metadata:
+  name: "homelab"
+  namespace: "argocd"
+spec:
+  description: "pontifex.dev Homelab"
+  # Allow manifests to deploy from any Git repos under damienpontifex GitHub account
+  sourceRepos:
+    # "https://github.com/damienpontifex/*"
+    # "https://jameswynn.github.io/helm-charts" # homepage
+    # "https://charts.external-secrets.io"
+    # "https://kyverno.github.io/kyverno"
+    # "https://kubernetes.github.io/*"
+    - "*"
+  # Allow deployment to any namespace on the cluster
+  destinations:
+    - namespace: "*"
+      server: "*"
+  clusterResourceWhitelist:
+    - group: "*"
+      kind: "*"
+---
+apiVersion: "argoproj.io/v1alpha1"
+kind: "Application"
+metadata:
+  name: "homelab"
+  namespace: "argocd"
+spec:
+  project: "homelab"
+  source:
+    repoURL: "https://github.com/damienpontifex/homelab"
+    path: "apps/"
+    directory:
+      recurse: true
+      include: "*/application.yaml"
+  destination:
+    name: "in-cluster"
+    namespace: "default"
+  syncPolicy:
+    automated:
+      enabled: true
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - "ServerSideApply=true"
+      - "CreateNamespace=true"
+    retry:
+      limit: 2
+      backoff:
+        duration: "5s"
+        factor: 2
+        maxDuration: "3m"

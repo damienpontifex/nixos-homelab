@@ -137,8 +137,8 @@ in
       # "--kube-apiserver-arg=audit-log-maxsize=100"
     ];
     disable = [
-      # "traefik"
-      # "servicelb"
+      "traefik"
+      "servicelb"
       # "local-storage"
     ];
     gracefulNodeShutdown.enable = true;
@@ -174,99 +174,8 @@ in
 
     # Bootstrap ArgoCD Application for Homelab
     manifests = {
-      homelab-application = {
-        enable = true;
-        target = "homelab-application.yaml";
-        content = {
-          apiVersion = "argoproj.io/v1alpha1";
-          kind = "Application";
-          metadata = {
-            name = "homelab";
-            namespace = "argocd";
-          };
-          spec = {
-            project = "homelab";
-            source = {
-              repoURL = "https://github.com/damienpontifex/homelab";
-              path = "apps/";
-              directory = {
-                recurse = true;
-                include = "*/application.yaml";
-              };
-            };
-            destination = {
-              name = "in-cluster";
-              namespace = "default";
-            };
-            syncPolicy = {
-              automated = {
-                enabled = true;
-                prune = true;
-                selfHeal = true;
-              };
-              syncOptions = [
-                "ServerSideApply=true"
-                "CreateNamespace=true"
-              ];
-              retry = {
-                limit = 2;
-                backoff = {
-                  duration = "5s";
-                  factor = 2;
-                  maxDuration = "3m";
-                };
-              };
-            };
-          };
-        };
-      };
-      homelab-project = {
-        enable = true;
-        target = "homelab-project.yaml";
-        content = {
-          apiVersion = "argoproj.io/v1alpha1";
-          kind = "AppProject";
-          metadata = {
-            name = "homelab";
-            namespace = "argocd";
-          };
-          spec = {
-            description = "pontifex.dev Homelab";
-            # Allow manifests to deploy from any Git repos under damienpontifex GitHub account
-            sourceRepos = [
-              # "https://github.com/damienpontifex/*"
-              # "https://jameswynn.github.io/helm-charts" # homepage
-              # "https://charts.external-secrets.io"
-              # "https://kyverno.github.io/kyverno"
-              # "https://kubernetes.github.io/*"
-              "*"
-            ];
-            # Allow deployment to any namespace on the cluster
-            destinations = [
-              {
-                namespace = "*";
-                server = "*";
-              }
-            ];
-            clusterResourceWhitelist = [
-              {
-                group = "*";
-                kind = "*";
-              }
-            ];
-          };
-        };
-      };
-      cloudflare-namespace = {
-        target = "cloudflare-namespace.yaml";
-        content = {
-          apiVersion = "v1";
-          kind = "Namespace";
-          metadata = {
-            name = "cloudflare-tunnel";
-          };
-        };
-      };
+      homelab-application.source = ./k3s-bootstrap/argocd-bootstrap.yaml
+      cloudflare-namespace.source = ./k3s-bootstrap/cloudflare.yaml
       cloudflare-token-secret = {
         target = "cloudflare-token-secret.yaml";
         # Use the sops template instead of trying to read the file directly

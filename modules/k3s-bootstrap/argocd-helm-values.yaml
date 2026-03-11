@@ -19,6 +19,11 @@ server:
     annotations:
       "cert-manager.io/cluster-issuer": "letsencrypt-prod"
 
+  httproute:
+    enabled: true
+    hostnames:
+      - argocd.home.pontifex.dev
+
   serviceAccount:
     annotations:
       "azure.workload.identity/client-id": "ea227ff8-7b75-4f0f-83a9-7638e949faf3"

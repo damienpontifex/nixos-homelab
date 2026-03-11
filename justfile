@@ -1,5 +1,4 @@
 # Container name for persistent Nix cache
-container_name := "nixos-homelab-builder"
 dev_container_name := "nixos-homelab-dev"
 
 # Display available commands and their descriptions
@@ -9,7 +8,7 @@ help:
 # Remove the persistent Nix container (preserves volumes for nix store cache)
 clean:
     docker compose down
-    @echo "Container {{container_name}} removed. Volumes preserved for caching. Next command will create a fresh container."
+    @echo "Container {{dev_container_name}} removed. Volumes preserved for caching. Next command will create a fresh container."
 
 [group('dev')]
 fmt: _ensure_dev_container
@@ -17,11 +16,11 @@ fmt: _ensure_dev_container
 
 lint-unused: _ensure_container
     @echo "Checking for unused code with deadnix..."
-    docker exec {{container_name}} nix run nixpkgs#deadnix -- --exclude hardware-configuration.nix .
+    docker exec {{dev_container_name}} nix run nixpkgs#deadnix -- --exclude hardware-configuration.nix .
 
 lint-statix: _ensure_container
     @echo "Checking for lint issues with statix..."
-    docker exec {{container_name}} nix run nixpkgs#statix -- check --ignore hardware-configuration.nix .
+    docker exec {{dev_container_name}} nix run nixpkgs#statix -- check --ignore hardware-configuration.nix .
 
 # Check for lint issues (unused arguments, dead code, etc.)
 [group('dev')]
@@ -31,49 +30,49 @@ lint: lint-unused lint-statix
 [group('dev')]
 lint-fix: _ensure_container
     @echo "Checking for unused code with deadnix..."
-    docker exec {{container_name}} nix run nixpkgs#deadnix -- --edit .
+    docker exec {{dev_container_name}} nix run nixpkgs#deadnix -- --edit .
     @echo "Fixing lint issues with statix..."
-    docker exec {{container_name}} nix run nixpkgs#statix -- fix .
+    docker exec {{dev_container_name}} nix run nixpkgs#statix -- fix .
     @echo "Formatting code..."
-    docker exec {{container_name}} nix fmt .
+    docker exec {{dev_container_name}} nix fmt .
 
 # Validate flake configuration for all systems (evaluation only)
 [group('dev')]
 validate: _ensure_container
-    docker exec {{container_name}} nix flake check --all-systems
+    docker exec {{dev_container_name}} nix flake check --all-systems
 
 # Validate and test-build all systems (slower but more thorough)
 [group('dev')]
 validate-build: _ensure_container
-    docker exec {{container_name}} nix flake check --all-systems
+    docker exec {{dev_container_name}} nix flake check --all-systems
     @echo "Building homeserver configuration (dry-run)..."
-    docker exec {{container_name}} nix build .#nixosConfigurations.homeserver.config.system.build.toplevel --dry-run
+    docker exec {{dev_container_name}} nix build .#nixosConfigurations.homeserver.config.system.build.toplevel --dry-run
     @echo "Building rpi-node-1 configuration (dry-run)..."
-    docker exec {{container_name}} nix build .#nixosConfigurations.rpi-node-1.config.system.build.toplevel --dry-run
+    docker exec {{dev_container_name}} nix build .#nixosConfigurations.rpi-node-1.config.system.build.toplevel --dry-run
     @echo "All validations passed!"
 
 # Show flake outputs for all systems
 [group('dev')]
 show: _ensure_container
-    docker exec {{container_name}} nix flake show --all-systems
+    docker exec {{dev_container_name}} nix flake show --all-systems
 
 # Run interactive bash shell in Nix Docker container
 [group('dev')]
 interactive: _ensure_container
-    docker exec -it {{container_name}} bash
+    docker exec -it {{dev_container_name}} bash
 
 # Build ISO image using nix-community/nixos-generators
 iso: _ensure_container
-    docker exec {{container_name}} sh -c 'nix run github:nix-community/nixos-generators -- --format iso --flake .#homeserver'
+    docker exec {{dev_container_name}} nix run github:nix-community/nixos-generators -- --format iso --flake .#homeserver
 
 # Build homeserver ISO and move to current directory
 homeserver-iso: _ensure_container
-    docker exec {{container_name}} sh -c 'nix build .#homeserver && mv result/iso/nixos-*.iso .'
+    docker exec {{dev_container_name}} sh -c 'nix build .#homeserver && mv result/iso/nixos-*.iso .'
 
 # Update flake inputs
 [group('dev')]
 update: _ensure_container
-    docker exec {{container_name}} nix flake update
+    docker exec {{dev_container_name}} nix flake update
 
 # Rebuild NixOS system (assumed to be running on target machine)
 [group('ops')]
@@ -82,7 +81,7 @@ rebuild HOSTNAME=`hostname`: _ensure_container
 
 # Build VM for homeserver
 build-vm: _ensure_container
-    docker exec {{container_name}} nixos-rebuild build-vm --flake .#homeserver
+    docker exec {{dev_container_name}} nixos-rebuild build-vm --flake .#homeserver
 
 # Install NixOS to remote x86_64 machine
 [group('install')]
@@ -133,49 +132,16 @@ _reinstall-machine:
 # Start NixOS upgrade on remote {{HOST}}
 [group('ops')]
 upgrade HOST="homeserver":
-  ssh ponti@{{HOST}}.local 'sudo nixos-rebuild switch --flake github:damienpontifex/nixos-homelab#{{HOST}} --show-trace --no-update-lock-file --refresh'
+  ssh ponti@{{HOST}}.local 'sudo nixos-rebuild switch --flake github:damienpontifex/nixos-homelab#{{HOST}} --show-trace --no-update-lock-file --refresh --accept-flake-config'
 
 # View NixOS upgrade logs on remote {{HOST}}
 [group('ops')]
 upgrade-logs HOST="homeserver.local":
   ssh ponti@{{HOST}} 'journalctl -fu nixos-upgrade.service'
 
-[group('ops')]
-homelab-kubeconfig:
-  #!/usr/bin/env bash
-  set -euo pipefail
-  
-  # Backup current config
-  cp ~/.kube/config ~/.kube/config.backup
-  
-  # Remove any existing homelab entries from current config
-  kubectl config delete-context homelab 2>/dev/null || true
-  kubectl config delete-cluster homelab 2>/dev/null || true
-  kubectl config delete-user homelab 2>/dev/null || true
-  
-  # Get k3s config from homeserver
-  ssh ponti@homeserver.local 'sudo k3s kubectl config view --raw' > /tmp/homelab-k3s-config.yaml
-  
-  # Rename cluster, user, context and fix server address
-  sed -i.bak \
-    -e 's/name: default$/name: homelab/g' \
-    -e 's/cluster: default$/cluster: homelab/g' \
-    -e 's/user: default$/user: homelab/g' \
-    -e 's|https://127.0.0.1:|https://homeserver.local:|g' \
-    /tmp/homelab-k3s-config.yaml
-  
-  # Merge with existing config
-  KUBECONFIG=~/.kube/config:/tmp/homelab-k3s-config.yaml kubectl config view --flatten > ~/.kube/config.new
-  mv ~/.kube/config.new ~/.kube/config
-  
-  # Clean up
-  rm /tmp/homelab-k3s-config.yaml /tmp/homelab-k3s-config.yaml.bak
-  
-  echo "Successfully merged homelab kubeconfig. Backup saved at ~/.kube/config.backup"
-
 # Build Raspberry Pi SD card image for rpi-node-1
 rpi-image: _ensure_container
-    docker exec {{container_name}} sh -c 'nix build .#packages.aarch64-linux.rpi-node-1 && ls -lh result/sd-image/*.img'
+    docker exec {{dev_container_name}} sh -c 'nix build .#packages.aarch64-linux.rpi-node-1 && ls -lh result/sd-image/*.img'
     @echo ""
     @echo "SD card image built! To flash to SD card:"
     @echo "  1. Insert SD card and find device (diskutil list on macOS)"
@@ -186,16 +152,16 @@ rpi-image: _ensure_container
 # Check if container exists and is running, start it if stopped, create if it doesn't exist
 _ensure_container:
     #!/usr/bin/env bash
-    if docker ps --format '{{{{.Names}}' | grep -q "^{{container_name}}$"; then
+    if docker ps --format '{{{{.Names}}' | grep -q "^{{dev_container_name}}$"; then
         # Container is running
         true
-    elif docker ps -a --format '{{{{.Names}}' | grep -q "^{{container_name}}$"; then
+    elif docker ps -a --format '{{{{.Names}}' | grep -q "^{{dev_container_name}}$"; then
         # Container exists but is stopped
-        echo "Starting existing container {{container_name}}..."
+        echo "Starting existing container {{dev_container_name}}..."
         GITHUB_TOKEN=$(gh auth token 2>/dev/null || echo '') docker compose up -d nix
     else
         # Container doesn't exist
-        echo "Creating new container {{container_name}}..."
+        echo "Creating new container {{dev_container_name}}..."
         GITHUB_TOKEN=$(gh auth token 2>/dev/null || echo '') docker compose up -d nix
     fi
 
