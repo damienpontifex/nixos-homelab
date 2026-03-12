@@ -174,7 +174,7 @@ in
 
     # Bootstrap ArgoCD Application for Homelab
     manifests = {
-      # Source https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.5.0/experimental-install.yaml
+      # Source https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.4.1/experimental-install.yaml
       gateway-api.source = ./k3s-bootstrap/gateway-api-experimental-install.yaml;
       homelab-application.source = ./k3s-bootstrap/argocd-bootstrap.yaml;
       cloudflare-namespace.source = ./k3s-bootstrap/cloudflare.yaml;
