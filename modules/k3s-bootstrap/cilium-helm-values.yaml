@@ -19,6 +19,8 @@ autoDirectNodeRoutes: false
 bpf:
   masquerade: true
 
+l2announcements:
+  enabled: true
 gatewayAPI:
   enabled: true
   hostNetwork:
