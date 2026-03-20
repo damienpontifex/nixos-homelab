@@ -16,7 +16,7 @@
     networking = {
       useDHCP = true;
       nftables.enable = true;
-      firewall.enable = true;
+      firewall.enable = false;
       wireless = lib.mkIf config.networking.enableWifi {
         enable = true;
         networks = {
