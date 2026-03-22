@@ -137,7 +137,7 @@ in
       # "--kube-apiserver-arg=audit-log-maxsize=100"
     ];
     disable = [
-      # "traefik"
+      "traefik"
       "servicelb"
       # "local-storage"
     ];
