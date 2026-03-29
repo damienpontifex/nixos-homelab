@@ -5,6 +5,9 @@ metadata:
   namespace: kube-system
 spec:
   gatewayClassName: cilium
+  addresses:
+    - type: IPAddress
+      value: 10.10.10.2
   listeners:
     - name: https
       protocol: HTTPS
