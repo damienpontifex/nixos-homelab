@@ -178,7 +178,7 @@ in
       gateway-api.source = ./k3s-bootstrap/gateway-api-experimental-install.yaml;
       entra-admin-users.source = ./k3s-bootstrap/entra-admin-users.yaml;
       cilium-gateway.source = ./k3s-bootstrap/cilium-gateway.yaml;
-      homelab-application.source = ./k3s-bootstrap/argocd-bootstrap.yaml;
+      # homelab-application.source = ./k3s-bootstrap/argocd-bootstrap.yaml;
       cloudflare-namespace.source = ./k3s-bootstrap/cloudflare.yaml;
       cloudflare-token-secret = {
         target = "cloudflare-token-secret.yaml";
