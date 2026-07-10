@@ -165,7 +165,7 @@ in
       # https://artifacthub.io/packages/helm/argo-cd-oci/argo-cd
       repo = "oci://ghcr.io/argoproj/argo-helm/argo-cd";
       # renovate: datasource=helm registryUrl=https://argoproj.github.io/argo-helm depName=argo-cd
-      version = "9.4.10";
+      version = "9.7.1";
       hash = "sha256-n1ihetUtB6SbczYPB/geWZxVKV0/L4KKtsrxcbHSul0=";
       targetNamespace = "argocd";
       createNamespace = true;
