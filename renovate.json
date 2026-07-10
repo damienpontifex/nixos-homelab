@@ -14,8 +14,8 @@
   "customManagers": [
     {
       "customType": "regex",
-      "fileMatch": [
-        "\\.nix$"
+      "managerFilePatterns": [
+        "/\\.nix$/"
       ],
       "matchStrings": [
         "# renovate: datasource=(?<datasource>\\S+) registryUrl=(?<registryUrl>\\S+) depName=(?<depName>\\S+)\\s+version = \"(?<currentValue>.*)\""
