@@ -1,6 +1,6 @@
 services:
   nix:
-    image: nixos/nix:2.22.3
+    image: nixos/nix:2.35.2
     platform: linux/amd64
     container_name: nixos-homelab-dev
     volumes:
